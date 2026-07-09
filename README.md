@@ -15,9 +15,13 @@ Plain HTML/CSS/JS — no build step, no dependencies.
   `<project>-instructions.html` (visitor how-to guide) and
   `<project>-build.html` (technical build story)
 - `cote/`, `mathsprint/` — bundled playable game demos
-- `careerhq-demo/` — static read-only Career HQ dashboard demo with fictional
-  sample data (adapted from `../Career HQ/career-dashboard/public/`; the server
-  API is replaced by `demo-data.js`, which mirrors the server's `demoState()`)
+- `careerhq-demo/` — the real Career HQ dashboard front-end running statically
+  in its built-in demo mode with fictional sample data. `styles.css` and
+  `app.js` are copied verbatim from `../Career HQ/career-dashboard/public/`;
+  `demo-data.js` forces demo mode and shims the server API with a sample
+  pipeline mirroring the server's `demoState()`. Fully interactive (drag cards,
+  log interview rounds, add jobs), but every edit is simulated in the browser
+  and never saved
 - `habits/` — Habit Tracker PWA demo (production build of `../Habit Tracker`
   via `npx vite build --base=/habits/`, plus `demo-seed.js` injected into its
   index.html: seeds ~6 weeks of sample habits into localStorage on first visit
@@ -53,6 +57,14 @@ after changing a game:
   npx vite build --base=/cote/
   cp -r dist "../Claude Portfolio/cote"
   ```
+- **Career HQ**: copy the redesigned front-end over, keeping the demo's own
+  `index.html` and `demo-data.js`:
+  ```
+  cp "../Career HQ/career-dashboard/public/styles.css" careerhq-demo/styles.css
+  cp "../Career HQ/career-dashboard/public/app.js"      careerhq-demo/app.js
+  ```
+  If the sample data changes, mirror the server's `demoState()` into
+  `careerhq-demo/demo-data.js`.
 
 ## Adding a future project
 
