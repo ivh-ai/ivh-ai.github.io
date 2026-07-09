@@ -10,7 +10,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://ivh-ai.github.io/" />
   <meta property="og:title" content="Ishaan Hattangady — Building Software with Claude Code" />
-  <meta property="og:description" content="Explore COTE, MathSprint, Career HQ, and more — real, working software designed and shipped in collaboration with AI." />
+  <meta property="og:description" content="Explore COTE, MathSprint, Job Search Tracker, and the Habit Tracker — real, working software designed and shipped in collaboration with AI." />
   <meta property="og:image" content="og-image.png" />
   <meta name="twitter:card" content="summary_large_image" />
 
@@ -18,13 +18,20 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
   <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="track">
+      <span><b>●</b> open to connect</span><span>customer success × ai</span><span>4 projects shipped</span><span>18 certifications</span><span>austin, texas</span><span>built with claude code</span>
+      <span><b>●</b> open to connect</span><span>customer success × ai</span><span>4 projects shipped</span><span>18 certifications</span><span>austin, texas</span><span>built with claude code</span>
+    </div>
+  </div>
 
   <header class="site-header">
     <nav class="nav" aria-label="Primary">
@@ -40,11 +47,11 @@
       </button>
 
       <div class="nav-menu" id="nav-menu">
-        <a class="nav-link" href="#about">About</a>
-        <a class="nav-link" href="#experience">Experience</a>
-        <a class="nav-link" href="#certifications">Certifications</a>
-        <a class="nav-link" href="#projects">Projects</a>
-        <a class="nav-link" href="#contact">Contact</a>
+        <a class="nav-link" href="#about">about</a>
+        <a class="nav-link" href="#experience">experience</a>
+        <a class="nav-link" href="#certifications">certifications</a>
+        <a class="nav-link" href="#projects">projects</a>
+        <a class="nav-link" href="#contact">contact</a>
         <a class="btn btn-small btn-primary" href="https://www.linkedin.com/in/ishaanhattangady/" target="_blank" rel="noopener">LinkedIn</a>
       </div>
     </nav>
@@ -52,36 +59,26 @@
 
   <main id="main">
 
-    <!-- ============ HERO ============ -->
+    <!-- ============ HERO: TERMINAL + BENTO ============ -->
     <section class="hero" id="top">
-      <div class="hero-glow" aria-hidden="true"></div>
       <div class="container">
-        <p class="eyebrow reveal">Portfolio · Built with Claude Code</p>
-        <h1 class="hero-title reveal">
-          I design and ship real, working software —
-          <span class="grad-text">in collaboration with AI.</span>
-        </h1>
-        <p class="hero-sub reveal">
-          I'm Ishaan. From interactive games to a full job-search platform, every project
-          here was taken from idea to finished product using Claude Code. This page is a
-          living record of that work — it grows with every new build.
-        </p>
-        <div class="hero-actions reveal">
-          <a class="btn btn-primary" href="#projects">Explore the projects</a>
-          <a class="btn btn-ghost" href="#about">About me</a>
+        <div class="tile t-term">
+          <div class="titlebar" aria-hidden="true"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>ishaan@portfolio ~ claude</span></div>
+          <div class="term">
+            <div><span class="prompt">❯ </span><span id="typed"></span><span class="caret" id="heroCaret" aria-hidden="true"></span></div>
+            <div id="termOut" aria-live="polite"></div>
+            <noscript>
+              <div class="out">Ishaan Hattangady — Customer Success Manager who designs and ships real, working software in collaboration with AI. Four projects compiled below; all of them run.</div>
+            </noscript>
+          </div>
         </div>
-        <ul class="hero-stats reveal" aria-label="Quick facts">
-          <li><strong>4</strong><span>projects shipped</span></li>
-          <li><strong>React · D3 · Node.js</strong><span>and counting</span></li>
-          <li><strong>100%</strong><span>built with Claude Code</span></li>
-        </ul>
       </div>
     </section>
 
     <!-- ============ ABOUT ============ -->
-    <section class="section" id="about">
+    <section class="section section-alt" id="about">
       <div class="container container-narrow">
-        <p class="eyebrow reveal">About</p>
+        <p class="cmdline reveal" data-cmd="cat about.md"><span class="p">❯ </span><span class="c"></span></p>
         <h2 class="section-title reveal">Who I am</h2>
         <div class="about-text reveal">
           <p>
@@ -105,30 +102,29 @@
       </div>
     </section>
 
-    <!-- ============ BACKGROUND ============ -->
     <!-- ============ EXPERIENCE ============ -->
-    <section class="section section-alt" id="experience">
+    <section class="section" id="experience">
       <div class="container container-narrow">
-        <p class="eyebrow reveal">Experience</p>
+        <p class="cmdline reveal" data-cmd="cat experience.md"><span class="p">❯ </span><span class="c"></span></p>
         <h2 class="section-title reveal">Where I've worked</h2>
 
-        <div class="about-grid">
+        <div class="about-grid" style="margin-top: var(--s5)">
           <div class="reveal">
             <ol class="timeline">
               <li class="timeline-item">
                 <p class="timeline-when">Mar 2026 – Present</p>
                 <h4 class="timeline-title">Customer Success Manager, SMB &amp; Mid-Market — Stampli</h4>
-                <p class="timeline-desc">I manage a portfolio of 175 SMB and mid-market accounts worth $3.5M in annual revenue. My job is making customers successful with Stampli's AI-powered AP automation — guiding them through onboarding, connecting the product to the ERP systems they already run on (NetSuite, Sage Intacct, QuickBooks), and supporting them day to day. I work directly with finance teams and executives to grow adoption and catch risks before they become problems.</p>
+                <p class="timeline-desc">I own a book of 175 SMB and mid-market accounts — about $3.5M in annual revenue. Day to day, I onboard new customers, get Stampli's AI-powered AP automation working inside whatever ERP they already run (NetSuite, Sage Intacct, QuickBooks), and make sure they keep seeing value long after go-live.</p>
               </li>
               <li class="timeline-item">
                 <p class="timeline-when">Jul 2022 – Feb 2026</p>
                 <h4 class="timeline-title">Senior Consultant — Oracle NetSuite</h4>
-                <p class="timeline-desc">Over nearly four years at Oracle, I led more than 75 NetSuite ERP implementations for companies ranging from small businesses to enterprises with $250M in revenue. I served as the main point of contact for executives on each project — planning the work, managing risk, and guiding clients through their switch from systems like QuickBooks, Sage, and Microsoft Dynamics. I specialized in the non-profit sector, led data migrations of up to 10 million records, and helped clients adopt NetSuite's AI features. Along the way, I mentored 15 new consultants in Oracle's Customer Success development program.</p>
+                <p class="timeline-desc">I spent almost four years implementing NetSuite — 75+ projects, from small businesses up to $250M enterprises. I was the person executives called throughout each implementation, and over time I became the go-to for non-profit clients and the big, messy data migrations. I also mentored 15 new consultants coming up through Oracle's program.</p>
               </li>
               <li class="timeline-item">
                 <p class="timeline-when">May 2021 – Aug 2021</p>
                 <h4 class="timeline-title">Operations Intern — Texas Instruments</h4>
-                <p class="timeline-desc">During a summer in Texas Instruments' manufacturing operations, I built the tools the team used to stay organized: a materials request system, a project tracker, and a 1,000+ record inventory database that helped prevent production gaps. I also wrote the training documentation and taught 25 team members how to use the new systems.</p>
+                <p class="timeline-desc">A summer internship in manufacturing operations. I built the tools the team ran on — a materials request system, a project tracker, and an inventory database — then trained 25 people on how to use them.</p>
               </li>
             </ol>
           </div>
@@ -146,11 +142,11 @@
     </section>
 
     <!-- ============ EDUCATION ============ -->
-    <section class="section" id="education">
+    <section class="section section-alt" id="education">
       <div class="container container-narrow">
-        <p class="eyebrow reveal">Education</p>
+        <p class="cmdline reveal" data-cmd="cat education.md"><span class="p">❯ </span><span class="c"></span></p>
         <h2 class="section-title reveal">Where I studied</h2>
-        <div class="reveal">
+        <div class="reveal" style="margin-top: var(--s5)">
           <ol class="timeline">
             <li class="timeline-item">
               <p class="timeline-when">Class of 2022</p>
@@ -167,9 +163,9 @@
     </section>
 
     <!-- ============ CERTIFICATIONS ============ -->
-    <section class="section section-alt" id="certifications">
+    <section class="section" id="certifications">
       <div class="container container-narrow">
-        <p class="eyebrow reveal">Certifications</p>
+        <p class="cmdline reveal" data-cmd="ls certifications/"><span class="p">❯ </span><span class="c"></span></p>
         <h2 class="section-title reveal">Licenses &amp; certifications</h2>
         <p class="section-sub reveal">Eighteen credentials across AI, ERP, and project management, as listed on LinkedIn.</p>
         <div class="cert-groups">
@@ -228,9 +224,9 @@
     </section>
 
     <!-- ============ PROJECTS ============ -->
-    <section class="section" id="projects">
+    <section class="section section-alt" id="projects">
       <div class="container">
-        <p class="eyebrow reveal">Projects</p>
+        <p class="cmdline reveal" data-cmd="ls projects/ --detail"><span class="p">❯ </span><span class="c"></span></p>
         <h2 class="section-title reveal">Built with Claude Code</h2>
         <p class="section-sub reveal">
           Every project below was designed, built, and shipped end-to-end in collaboration
@@ -277,10 +273,10 @@
             </div>
           </article>
 
-          <!-- Career HQ -->
+          <!-- Job Search Tracker -->
           <article class="project-card reveal">
             <div class="project-icon" aria-hidden="true">🧭</div>
-            <h3 class="project-name">Career HQ</h3>
+            <h3 class="project-name">Job Search Tracker</h3>
             <p class="project-desc">
               A personal job-search operating system: a local web dashboard backed by a
               markdown data layer, plus a roster of custom Claude skills for resume tailoring,
@@ -291,9 +287,9 @@
               <li>Node.js</li><li>Claude Skills</li><li>MCP</li>
             </ul>
             <div class="project-links">
-              <a class="btn btn-small btn-primary" href="careerhq-demo/">Try the demo</a>
-              <a class="btn btn-small btn-ghost" href="docs/careerhq-instructions.html">How to use</a>
-              <a class="btn btn-small btn-ghost" href="docs/careerhq-build.html">How it was built</a>
+              <a class="btn btn-small btn-primary" href="job-search-tracker-demo/">Try the demo</a>
+              <a class="btn btn-small btn-ghost" href="docs/job-search-tracker-instructions.html">How to use</a>
+              <a class="btn btn-small btn-ghost" href="docs/job-search-tracker-build.html">How it was built</a>
             </div>
           </article>
 
@@ -335,9 +331,9 @@
     </section>
 
     <!-- ============ HOW I WORK ============ -->
-    <section class="section section-alt" id="process">
+    <section class="section" id="process">
       <div class="container container-narrow">
-        <p class="eyebrow reveal">Process</p>
+        <p class="cmdline reveal" data-cmd="cat process.md"><span class="p">❯ </span><span class="c"></span></p>
         <h2 class="section-title reveal">How these get built</h2>
         <ol class="process-grid">
           <li class="process-step reveal">
@@ -360,9 +356,9 @@
     </section>
 
     <!-- ============ CONTACT ============ -->
-    <section class="section contact" id="contact">
+    <section class="section section-alt contact" id="contact">
       <div class="container container-narrow contact-inner">
-        <p class="eyebrow reveal">Contact</p>
+        <p class="cmdline reveal" data-cmd="cat contact.md"><span class="p">❯ </span><span class="c"></span></p>
         <h2 class="section-title reveal">Let's connect</h2>
         <p class="section-sub reveal">
           Whether you're a recruiter, a fellow builder, or just curious about working with
@@ -381,7 +377,7 @@
   <footer class="site-footer">
     <div class="container footer-inner">
       <p>© <span id="year">2026</span> Ishaan Hattangady</p>
-      <p class="footer-note">Designed &amp; built with <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a></p>
+      <p class="footer-note">main <b>✓</b> designed &amp; built with <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a></p>
     </div>
   </footer>
 

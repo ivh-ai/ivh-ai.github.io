@@ -1,5 +1,5 @@
 "use strict";
-/* Career HQ tracker front-end. Zero dependencies; talks to server.js. */
+/* Job Search Tracker front-end. Zero dependencies; talks to server.js. */
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

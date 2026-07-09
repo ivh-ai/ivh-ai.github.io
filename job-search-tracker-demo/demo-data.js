@@ -1,5 +1,5 @@
 "use strict";
-/* Career HQ — static demo shim.
+/* Job Search Tracker — static demo shim.
  *
  * The demo runs the REAL dashboard front-end (app.js + styles.css copied
  * verbatim from career-dashboard/public) with no server behind it. This file:

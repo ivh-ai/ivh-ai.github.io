@@ -7,6 +7,6 @@
 [submodule "projects/habit-tracker"]
 	path = projects/habit-tracker
 	url = https://github.com/ivh-ai/habit-tracker.git
-[submodule "projects/careerhq"]
-	path = projects/careerhq
-	url = https://github.com/ivh-ai/careerhq.git
+[submodule "projects/job-search-tracker"]
+	path = projects/job-search-tracker
+	url = https://github.com/ivh-ai/job-search-tracker.git

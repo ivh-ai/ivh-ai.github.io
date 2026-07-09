@@ -1,7 +1,7 @@
 # Ishaan Hattangady — Portfolio
 
 A single-page portfolio showcasing projects built with Claude Code:
-COTE (Countries of the Earth), MathSprint, Career HQ, and whatever ships next.
+COTE (Countries of the Earth), MathSprint, Job Search Tracker, and whatever ships next.
 
 Plain HTML/CSS/JS — no build step, no dependencies.
 
@@ -15,9 +15,9 @@ Plain HTML/CSS/JS — no build step, no dependencies.
   `<project>-instructions.html` (visitor how-to guide) and
   `<project>-build.html` (technical build story)
 - `cote/`, `mathsprint/` — bundled playable game demos
-- `careerhq-demo/` — the real Career HQ dashboard front-end running statically
+- `job-search-tracker-demo/` — the real Job Search Tracker dashboard front-end running statically
   in its built-in demo mode with fictional sample data. `styles.css` and
-  `app.js` are copied verbatim from `../Career HQ/career-dashboard/public/`;
+  `app.js` are copied verbatim from `../Job Search Tracker/career-dashboard/public/`;
   `demo-data.js` forces demo mode and shims the server API with a sample
   pipeline mirroring the server's `demoState()`. Fully interactive (drag cards,
   log interview rounds, add jobs), but every edit is simulated in the browser
@@ -57,14 +57,14 @@ after changing a game:
   npx vite build --base=/cote/
   cp -r dist "../Claude Portfolio/cote"
   ```
-- **Career HQ**: copy the redesigned front-end over, keeping the demo's own
+- **Job Search Tracker**: copy the redesigned front-end over, keeping the demo's own
   `index.html` and `demo-data.js`:
   ```
-  cp "../Career HQ/career-dashboard/public/styles.css" careerhq-demo/styles.css
-  cp "../Career HQ/career-dashboard/public/app.js"      careerhq-demo/app.js
+  cp "../Job Search Tracker/career-dashboard/public/styles.css" job-search-tracker-demo/styles.css
+  cp "../Job Search Tracker/career-dashboard/public/app.js"      job-search-tracker-demo/app.js
   ```
   If the sample data changes, mirror the server's `demoState()` into
-  `careerhq-demo/demo-data.js`.
+  `job-search-tracker-demo/demo-data.js`.
 
 ## Adding a future project
 
