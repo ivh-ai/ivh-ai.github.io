@@ -116,7 +116,7 @@ code {
 .quickstart {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--accent-2);
+  border-left: 3px solid var(--yellow, var(--accent-2));
   border-radius: var(--radius-sm);
   padding: var(--s3) var(--s4);
   margin: var(--s4) 0;
@@ -146,7 +146,7 @@ code {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 14px;
-  color: var(--accent-2);
+  color: var(--green, var(--accent-2));
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
