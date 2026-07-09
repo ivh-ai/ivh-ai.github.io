@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MathSprint — Project Documentation | Ishaan Hattangady</title>
+  <meta name="description" content="How MathSprint was designed and built with Claude Code — a 90-second mental-math game in a single dependency-free HTML file." />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-brand" href="../index.html">
+        <span class="brand-mark" aria-hidden="true">IH</span>
+        Ishaan Hattangady
+      </a>
+      <div class="nav-menu" style="display:flex">
+        <a class="nav-link" href="../index.html#projects">← All projects</a>
+        <a class="btn btn-small btn-primary" href="../mathsprint/">Play MathSprint</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="doc-hero">
+      <div class="container container-narrow">
+        <div class="project-icon" aria-hidden="true">⚡</div>
+        <p class="eyebrow">Project documentation</p>
+        <h1 class="doc-title">MathSprint — Quick Math Challenge</h1>
+        <p class="doc-lede">
+          90 seconds. As many questions as you can. A fast-paced mental-math trainer with four
+          game modes, streak tracking, and a shared leaderboard — all delivered as one
+          dependency-free HTML file that loads instantly.
+        </p>
+        <ul class="tag-list" aria-label="Technologies">
+          <li>JavaScript</li><li>HTML/CSS</li><li>Supabase</li><li>Zero dependencies</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>The idea</h2>
+        <p>
+          Mental math gets rusty without practice, and most practice tools feel like homework.
+          MathSprint turns it into an arcade run: pick an operation, race a 90-second clock,
+          and chase a high score. The design constraints:
+        </p>
+        <ul>
+          <li><strong>Instant to play</strong> — no login, no load time, no instructions longer than a glance</li>
+          <li><strong>Four focused modes</strong> — addition, subtraction, multiplication, and division, so you can train your weak spot</li>
+          <li><strong>Momentum mechanics</strong> — streak tracking rewards consistency, not just speed</li>
+          <li><strong>Friendly competition</strong> — a leaderboard per game mode, shared across all players</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <span class="audience">In plain English</span>
+        <h2>How it works</h2>
+        <h3>The game loop</h3>
+        <p>
+          Each question shows a problem like <code>12 + 4</code> with three answer choices.
+          Tap the right one and your score ticks up; wrong answers still advance to the next
+          question — you get one attempt each, so guessing carelessly costs you. Keyboard
+          players can press <strong>1, 2, or 3</strong> to answer even faster.
+        </p>
+        <h3>The clock and the streak</h3>
+        <p>
+          Every run is exactly 90 seconds. Alongside your score, the game tracks your current
+          and best streak of consecutive correct answers — the real skill measure, since one
+          careless tap resets it.
+        </p>
+        <h3>The leaderboard</h3>
+        <p>
+          When time's up, your score is submitted under your name to a shared cloud leaderboard
+          — one board per game mode, so addition specialists and division wizards each get
+          their own top ranks.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <span class="audience">For technical readers</span>
+        <h2>Under the hood</h2>
+        <h3>Single-file architecture</h3>
+        <p>
+          The entire game — markup, styles, and logic — ships as one HTML file with no build
+          step, no framework, and no external dependencies. Screens (home, instructions, game,
+          results, leaderboard, credits) are implemented as <code>.page</code> sections toggled
+          by a tiny router, which keeps navigation instant and the whole game trivially
+          portable: copy one file, and it runs anywhere a browser does.
+        </p>
+        <h3>Question generation</h3>
+        <p>
+          Problems are generated on the fly per mode, with distractor answers constructed to be
+          plausible (near-misses rather than random numbers), which is what makes the one-attempt
+          rule meaningful.
+        </p>
+        <h3>Leaderboard with graceful fallback</h3>
+        <p>
+          Scores post to a Supabase table through its REST API, queried per mode and ordered by
+          score. If the Supabase configuration is absent, the game silently falls back to
+          browser localStorage — the design degrades gracefully instead of breaking, so the
+          file works even fully offline.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>Key design decisions</h2>
+        <div class="fact-grid">
+          <div class="fact-card">
+            <h4>One file, forever portable</h4>
+            <p>No framework or bundler for a game this size — a single HTML file is faster to load, easier to host, and impossible to break with a dependency update.</p>
+          </div>
+          <div class="fact-card">
+            <h4>Three choices, one attempt</h4>
+            <p>Multiple choice keeps the pace high (no typing numbers), while the single-attempt rule keeps it honest — you can't brute-force the right answer.</p>
+          </div>
+          <div class="fact-card">
+            <h4>90 seconds exactly</h4>
+            <p>Long enough to build a rhythm, short enough to always justify "one more run" — the session length is the retention mechanic.</p>
+          </div>
+          <div class="fact-card">
+            <h4>Per-mode leaderboards</h4>
+            <p>A shared board across operations would just measure addition speed. Separate boards make each mode its own competition.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-cta">
+      <div class="container container-narrow">
+        <h2 class="section-title">Try it yourself</h2>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="../mathsprint/">Play MathSprint</a>
+          <a class="btn btn-ghost" href="../index.html#projects">Back to all projects</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Ishaan Hattangady</p>
+      <p class="footer-note">Designed &amp; built with <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>

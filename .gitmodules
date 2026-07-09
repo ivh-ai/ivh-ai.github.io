@@ -1,0 +1,12 @@
+[submodule "projects/cote"]
+	path = projects/cote
+	url = https://github.com/ivh-ai/cote.git
+[submodule "projects/mathsprint"]
+	path = projects/mathsprint
+	url = https://github.com/ivh-ai/mathsprint.git
+[submodule "projects/habit-tracker"]
+	path = projects/habit-tracker
+	url = https://github.com/ivh-ai/habit-tracker.git
+[submodule "projects/careerhq"]
+	path = projects/careerhq
+	url = https://github.com/ivh-ai/careerhq.git

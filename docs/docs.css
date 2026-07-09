@@ -1,0 +1,113 @@
+/* Documentation pages — extends the main design system in ../styles.css */
+
+.doc-hero {
+  padding: var(--s10) 0 var(--s8);
+  border-bottom: 1px solid var(--border);
+}
+
+.doc-hero .project-icon { margin-bottom: var(--s3); }
+
+.doc-title {
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 700;
+  margin-bottom: var(--s2);
+}
+
+.doc-lede {
+  font-size: clamp(16px, 2vw, 19px);
+  color: var(--text-muted);
+  max-width: 60ch;
+  margin-bottom: var(--s3);
+}
+
+.doc-hero .tag-list { margin-bottom: var(--s4); }
+
+.doc-section { padding: var(--s8) 0; }
+.doc-section + .doc-section { border-top: 1px solid var(--border); }
+
+.doc-section h2 {
+  font-size: clamp(24px, 3.5vw, 30px);
+  margin-bottom: var(--s3);
+}
+
+.doc-section h3 {
+  font-size: 19px;
+  margin: var(--s4) 0 var(--s2);
+}
+
+.doc-section p, .doc-section li {
+  color: var(--text-muted);
+  max-width: 68ch;
+}
+.doc-section p strong, .doc-section li strong { color: var(--text); }
+
+.doc-section ul {
+  padding-left: 20px;
+  display: grid;
+  gap: var(--s1);
+  margin: 0 0 var(--s3);
+}
+
+/* Audience label chips */
+.audience {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 14px;
+  margin-bottom: var(--s2);
+}
+
+/* Fact / decision cards */
+.fact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s2);
+  margin: var(--s3) 0;
+}
+
+.fact-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--s3);
+}
+
+.fact-card h4 {
+  font-size: 15px;
+  margin-bottom: var(--s1);
+}
+
+.fact-card p {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Inline code */
+code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.88em;
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1px 6px;
+  color: var(--text);
+}
+
+/* Footer CTA band */
+.doc-cta {
+  text-align: center;
+  padding: var(--s8) 0 var(--s10);
+  border-top: 1px solid var(--border);
+}
+.doc-cta .hero-actions { justify-content: center; margin-bottom: 0; }
+
+@media (max-width: 720px) {
+  .fact-grid { grid-template-columns: 1fr; }
+}

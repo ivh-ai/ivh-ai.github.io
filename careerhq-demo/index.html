@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Career HQ — Interactive Demo | Ishaan Hattangady</title>
+<meta name="description" content="Interactive demo of Career HQ, a personal job-search operating system built with Claude Code. Sample data only.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="bg-glow" aria-hidden="true"></div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">Career HQ</div>
+        <div class="brand-sub">Interactive demo · sample data</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav" aria-label="Sections"></nav>
+    <div class="sidebar-foot">
+      <div class="profile-pill" id="profilePill" role="status"></div>
+      <a class="back-link" href="../index.html#projects">&larr; Back to portfolio</a>
+    </div>
+  </aside>
+
+  <main class="main" id="main" tabindex="-1">
+    <div class="loading" id="loading">Loading pipeline…</div>
+  </main>
+</div>
+
+<!-- Add application modal -->
+<div class="overlay" id="addOverlay" hidden>
+  <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+    <div class="modal-head">
+      <h2 id="addTitle">Add application</h2>
+      <button class="icon-btn" data-close aria-label="Close">✕</button>
+    </div>
+    <form id="addForm" class="form-grid">
+      <label>Company<input name="company" required placeholder="Acme Studios"></label>
+      <label>Role<input name="role" required placeholder="Product Manager"></label>
+      <label>Posting link<input name="link" type="url" placeholder="https://…"></label>
+      <label>Source
+        <select name="source">
+          <option value="indeed">Indeed</option><option value="linkedin">LinkedIn</option>
+          <option value="referral">Referral</option><option value="cold outreach">Cold outreach</option>
+          <option value="company site">Company site</option><option value="other">Other</option>
+        </select>
+      </label>
+      <label>Location<input name="location" placeholder="Remote / Los Angeles"></label>
+      <label>Salary<input name="salary" placeholder="$120k–140k"></label>
+      <label>Stage
+        <select name="stage">
+          <option value="identified">Identified</option><option value="applied">Applied</option>
+        </select>
+      </label>
+      <label>Next action due<input name="due" type="date"></label>
+      <label class="span2">Next action<input name="nextAction" placeholder="Tailor resume + apply"></label>
+      <div class="span2 form-actions">
+        <button type="button" class="btn ghost" data-close>Cancel</button>
+        <button type="submit" class="btn primary">Add to pipeline</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Detail drawer -->
+<div class="overlay drawer-overlay" id="drawerOverlay" hidden>
+  <aside class="drawer glass" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+    <div class="drawer-head">
+      <h2 id="drawerTitle"></h2>
+      <button class="icon-btn" data-close aria-label="Close">✕</button>
+    </div>
+    <div class="drawer-actions" id="drawerActions"></div>
+    <div class="drawer-body markdown" id="drawerBody"></div>
+  </aside>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="demo-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
