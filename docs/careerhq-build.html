@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>How Career HQ Was Built | Ishaan Hattangady</title>
-  <meta name="description" content="The technical story behind Career HQ: markdown as a database, a zero-dependency Node dashboard, custom Claude skills, MCP job-board integrations, and how the public demo was packaged." />
+  <meta name="description" content="The technical story behind Career HQ: markdown as a database, a zero-dependency Node dashboard, URL-to-card job ingestion, custom Claude skills, MCP job-board integrations, and how the public demo was packaged." />
   <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../styles.css" />
   <link rel="stylesheet" href="docs.css" />
 </head>
@@ -76,10 +76,21 @@
         <h3>A dashboard in one file, no dependencies</h3>
         <p>
           The web dashboard is a single Node.js server file using only the standard library —
-          no Express, no npm installs. It parses the markdown into JSON for a vanilla-JS
-          front end, and writes edits (drag a kanban card, log a touch) straight back into the
-          markdown. Because the parsers and file conventions are coupled, the conventions are
-          documented as a contract: change a tracker column, update the parser.
+          no Express, no npm installs. It parses the markdown into JSON for a vanilla-JS front
+          end — a two-tab interface with an at-a-glance overview and a drag-and-drop kanban
+          board — and writes edits (move a card, log a touch, record an interview round)
+          straight back into the markdown. Because the parsers and file conventions are
+          coupled, the conventions are documented as a contract: change a tracker column,
+          update the parser.
+        </p>
+        <h3>Paste a URL, get a card</h3>
+        <p>
+          Adding a job takes a link, not a form. A small endpoint fetches the posting and reads
+          its structured <code>JobPosting</code> metadata (the JSON-LD that Greenhouse, Lever,
+          and most career sites embed for Google), falling back to OpenGraph and title tags,
+          then pre-fills an editable card — company, role, location, salary, source. The fetch
+          is guarded against private and internal addresses, and anything it can't parse
+          degrades to quick manual entry.
         </p>
         <h3>Claude skills as encoded workflows</h3>
         <p>
@@ -93,10 +104,11 @@
         </p>
         <h3>Packaging a private system for public viewing</h3>
         <p>
-          The demo on this site is the real dashboard's front end with the server swapped out:
-          a baked-in JavaScript file mirrors the server's sample-data endpoint, edit routes are
-          disabled, and every write action explains itself instead. Same pixels, fictional
-          data, zero private information.
+          The demo on this site is the real dashboard's front end, unmodified, running in its
+          built-in demo mode. A small baked-in script forces demo mode and intercepts the API
+          calls with a fictional sample pipeline, and demo mode already simulates every edit in
+          the browser — so you can drag cards, log rounds, and add jobs, yet nothing is ever
+          saved. Same pixels, fictional data, zero private information.
         </p>
       </div>
     </section>
@@ -131,9 +143,11 @@
         <p>
           Career HQ was built inside-out: the file conventions first, then the skills that
           write to them, then the dashboard that visualizes them — each layer tested against
-          real job-search use before the next was added. The dashboard's built-in demo mode
-          (fictional data served read-only) was designed in from the start, which is what made
-          publishing this portfolio demo a packaging exercise rather than a rebuild.
+          real job-search use before the next was added. When the dashboard was later refocused
+          into a dedicated tracker — a redesign taken from spec to plan to test-driven build —
+          the markdown contract held, so the skills kept working untouched. Its built-in demo
+          mode, designed in from the start, is what makes publishing this portfolio demo a
+          packaging exercise rather than a rebuild.
         </p>
       </div>
     </section>

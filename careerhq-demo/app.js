@@ -1,558 +1,400 @@
-/* Career HQ — frontend. Vanilla JS, no build step. */
 "use strict";
+/* Career HQ tracker front-end. Zero dependencies; talks to server.js. */
 
-const $ = (sel, el = document) => el.querySelector(sel);
-const OPEN_STAGES = ["identified", "applied", "screen", "interview", "final", "offer"];
-const CLOSED_STAGES = ["closed-accepted", "closed-rejected", "closed-withdrawn", "closed-stale"];
-const STAGE_COLOR = {
-  identified: "var(--st-identified)", applied: "var(--st-applied)", screen: "var(--st-screen)",
-  interview: "var(--st-interview)", final: "var(--st-final)", offer: "var(--st-offer)",
-};
-
-const ICONS = {
-  overview: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
-  pipeline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v11"/><path d="M12 5v6"/><path d="M18 5v14"/><circle cx="6" cy="19" r="2"/><circle cx="12" cy="14" r="2"/><circle cx="18" cy="21" r="0.5"/></svg>',
-  resume: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>',
-  jobs: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
-  interview: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
-  compare: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M16 7h4l-2 5h-4z"/><path d="M4 7h4l-2 5H2z"/><path d="M7 21h10"/></svg>',
-  industry: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-6 4 3 5-8"/></svg>',
-  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
-  doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',
-  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
-};
-
-const SECTIONS = [
-  { id: "overview", label: "Overview" },
-  { id: "pipeline", label: "Pipeline" },
-  { id: "resume", label: "Resume Studio" },
-  { id: "jobs", label: "Job Search" },
-  { id: "interview", label: "Interview Prep" },
-  { id: "compare", label: "Compare Roles" },
-  { id: "industry", label: "Industry Intel" },
-];
-
-let state = null;
-const demo = true; // static demo build — sample data only
-
-/* ---------------- utilities ---------------- */
-
+const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-function toast(msg) {
-  const t = $("#toast");
-  t.textContent = msg;
-  t.hidden = false;
-  clearTimeout(toast._h);
-  toast._h = setTimeout(() => { t.hidden = true; }, 2800);
+const STAGES = [
+  { id: "identified", label: "Saved" },
+  { id: "applied", label: "Applied" },
+  { id: "screen", label: "Screen" },
+  { id: "interview", label: "Interview" },
+  { id: "final", label: "Final" },
+  { id: "offer", label: "Offer" },
+];
+const STAGE_IDS = STAGES.map((s) => s.id);
+const OUTCOMES = ["closed-accepted", "closed-rejected", "closed-withdrawn", "closed-stale"];
+
+let state = null;
+let view = localStorage.getItem("chq-view") || "overview";
+let demo = localStorage.getItem("chq-demo") === "1";
+
+/* ---- api ---- */
+async function apiGet(path) {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`GET ${path} → ${res.status}`);
+  return res.json();
 }
-
-async function api(path, body) {
-  // Static demo: no server. State is baked into demo-data.js.
-  if (!body && path.startsWith("/api/state")) return window.DEMO_STATE();
-  throw new Error("not available in the demo");
+async function apiPost(path, body) {
+  // In demo mode, mutations are simulated in-memory and NEVER sent to the server,
+  // so playing with the sample pipeline can't touch real files. /api/ingest is a
+  // read-only page fetch, so it's allowed through even in demo mode.
+  if (demo && path !== "/api/ingest") { applyDemoMutation(path, body); return { ok: true }; }
+  const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `POST ${path} → ${res.status}`);
+  return data;
 }
-
-function guardWrite() {
-  if (demo) { toast("This demo is read-only — the real Career HQ writes to live files"); return false; }
-  return true;
-}
-
-async function copyText(text) {
-  try { await navigator.clipboard.writeText(text); }
-  catch {
-    const ta = document.createElement("textarea");
-    ta.value = text; document.body.appendChild(ta); ta.select();
-    document.execCommand("copy"); ta.remove();
-  }
-  toast("Prompt copied — paste it into Claude");
-}
-
-function daysUntil(dateStr) {
-  if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
-  return Math.round((new Date(dateStr + "T12:00") - new Date(state.today + "T12:00")) / 864e5);
-}
-
-function dueBadge(due) {
-  const d = daysUntil(due);
-  if (d === null) return '<span class="badge none">no date</span>';
-  if (d < 0) return `<span class="badge overdue num">${-d}d overdue</span>`;
-  if (d === 0) return '<span class="badge today">due today</span>';
-  return `<span class="badge soon num">in ${d}d</span>`;
-}
-
-/* very small markdown renderer for viewing career files */
-function renderMarkdown(md) {
-  const lines = md.replace(/<!--[\s\S]*?-->/g, "").split("\n");
-  let html = "", listOpen = false, tableRows = [];
-  const flushTable = () => {
-    if (!tableRows.length) return;
-    const [head, ...body] = tableRows;
-    html += "<table><thead><tr>" + head.map((c) => `<th>${inline(c)}</th>`).join("") + "</tr></thead><tbody>"
-      + body.map((r) => "<tr>" + r.map((c) => `<td>${inline(c)}</td>`).join("") + "</tr>").join("") + "</tbody></table>";
-    tableRows = [];
-  };
-  const inline = (s) => esc(s)
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-  for (const raw of lines) {
-    const line = raw.trimEnd();
-    const t = line.trim();
-    if (t.startsWith("|")) {
-      if (/^\|[\s:|-]+\|$/.test(t)) continue;
-      tableRows.push(t.slice(1, -1).split("|").map((c) => c.trim()));
-      continue;
-    }
-    flushTable();
-    if (t.startsWith("- ")) {
-      if (!listOpen) { html += "<ul>"; listOpen = true; }
-      html += `<li>${inline(t.slice(2))}</li>`;
-      continue;
-    }
-    if (listOpen) { html += "</ul>"; listOpen = false; }
-    if (t.startsWith("### ")) html += `<h3>${inline(t.slice(4))}</h3>`;
-    else if (t.startsWith("## ")) html += `<h2>${inline(t.slice(3))}</h2>`;
-    else if (t.startsWith("# ")) html += `<h1>${inline(t.slice(2))}</h1>`;
-    else if (t.startsWith("> ")) html += `<p style="color:var(--faint)">${inline(t.slice(2))}</p>`;
-    else if (t === "---" || t === "") { /* skip */ }
-    else html += `<p>${inline(t)}</p>`;
-  }
-  if (listOpen) html += "</ul>";
-  flushTable();
-  return html;
-}
-
-/* ---------------- shell ---------------- */
-
-function buildNav() {
-  $("#nav").innerHTML = SECTIONS.map((s) =>
-    `<button class="nav-link" data-nav="${s.id}">${ICONS[s.id]}<span>${s.label}</span></button>`).join("");
-  $("#nav").addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-nav]");
-    if (btn) location.hash = "#/" + btn.dataset.nav;
-  });
-}
-
-function currentSection() {
-  const id = (location.hash || "").replace("#/", "");
-  return SECTIONS.some((s) => s.id === id) ? id : "overview";
-}
-
-async function refresh() {
-  try {
-    state = await api("/api/state" + (demo ? "?demo=1" : ""));
-  } catch (e) {
-    $("#main").innerHTML = `<div class="empty">Could not load data: ${esc(e.message)}</div>`;
-    return;
-  }
-  const p = state.profile;
-  const ready = p.masterReady && p.positioningReady;
-  $("#profilePill").innerHTML =
-    `<span class="dot ${ready ? "ok" : "warn"}"></span>${ready ? "Profile ready" : "Profile needs setup"}`;
+// Full fetch from the server (real or demo dataset). Used on first load and demo toggle.
+async function load() {
+  state = await apiGet("/api/state" + (demo ? "?demo=1" : ""));
+  document.body.classList.toggle("demo", demo);
+  const t = document.querySelector("#demo-toggle");
+  if (t) t.checked = demo;
   render();
 }
+// After a mutation: in demo mode the local state was already changed, so just re-render;
+// in real mode, re-fetch from disk to stay authoritative.
+async function refresh() { if (demo) render(); else await load(); }
 
-function render() {
-  const sec = currentSection();
-  document.querySelectorAll(".nav-link").forEach((b) => b.classList.toggle("active", b.dataset.nav === sec));
-  const banner = demo ? '<div class="demo-banner">Interactive demo with sample data — the real Career HQ runs locally on private files. Explore the sections, drag pipeline cards, open a card.</div>' : "";
-  const renderers = { overview: renderOverview, pipeline: renderPipeline, resume: renderResume, jobs: renderJobs, interview: renderInterview, compare: renderCompare, industry: renderIndustry };
-  $("#main").innerHTML = banner + renderers[sec]();
-  wireMain();
-}
-
-/* ---------------- shared blocks ---------------- */
-
-function promptCard(title, desc, prompt) {
-  return `<div class="card prompt-card">
-    <h4>${esc(title)}</h4><p>${esc(desc)}</p>
-    <div class="prompt-box">${esc(prompt)}</div>
-    <div class="prompt-foot"><button class="btn small" data-copy="${esc(prompt)}">${ICONS.copy} Copy prompt</button></div>
-  </div>`;
-}
-
-function fileList(files, emptyMsg) {
-  if (!files.length) return `<div class="empty">${emptyMsg}</div>`;
-  return files.map((f) => `<div class="file-row">${ICONS.doc}
-    <button class="linkish" data-view="${esc(f.path)}" data-title="${esc(f.name)}">${esc(f.name.replace(/\.md$/, ""))}</button>
-    <span class="date num">${f.modified}</span></div>`).join("");
-}
-
-function appLabel(r) { return `${esc(r.company)} — ${esc(r.role)}`; }
-
-/* ---------------- overview ---------------- */
-
-function renderOverview() {
-  const open = state.pipeline.filter((r) => OPEN_STAGES.includes(r.stage));
-  const interviews = open.filter((r) => ["screen", "interview", "final"].includes(r.stage)).length;
-  const offers = open.filter((r) => r.stage === "offer").length;
-  const wk = state.weekly[state.weekly.length - 1];
-  const weekActions = wk ? wk.apps + wk.touches + wk.interviews : 0;
-  const appliedPlus = open.filter((r) => r.stage !== "identified").length + state.archive.length;
-  const responded = open.filter((r) => ["screen", "interview", "final", "offer"].includes(r.stage)).length;
-  const respRate = appliedPlus ? Math.round((responded / appliedPlus) * 100) : null;
-
-  const funnel = OPEN_STAGES.map((s) => ({ s, n: open.filter((r) => r.stage === s).length }));
-  const maxN = Math.max(1, ...funnel.map((f) => f.n));
-
-  const actions = open
-    .filter((r) => r.nextAction && r.nextAction !== "—")
-    .sort((a, b) => (a.due || "9999") < (b.due || "9999") ? -1 : 1)
-    .slice(0, 7);
-
-  const fits = open.filter((r) => r.fitScore != null).sort((a, b) => b.fitScore - a.fitScore).slice(0, 8);
-
-  const shelfItems = [
-    ...state.research.companies.map((f) => ({ ...f, kind: "company" })),
-    ...state.research.industries.map((f) => ({ ...f, kind: "industry" })),
-    ...state.research.comparisons.map((f) => ({ ...f, kind: "comparison" })),
-    ...state.prepPacks.map((f) => ({ ...f, kind: "prep" })),
-  ];
-
-  return `
-  <div class="page-head">
-    <div><h1>Overview</h1><div class="sub">${state.profile.statement ? esc(state.profile.statement) : "Your search at a glance. Last weekly review: " + (esc(state.lastReviewed) || "never")}</div></div>
-    <button class="btn primary" data-open-add>${ICONS.plus} Add application</button>
-  </div>
-
-  <div class="grid cols4">
-    <div class="card"><div class="stat-value num">${open.length}</div><div class="stat-label">Open applications</div><div class="stat-hint">${state.archive.length} closed all-time</div></div>
-    <div class="card"><div class="stat-value num">${interviews}</div><div class="stat-label">In interview stages</div><div class="stat-hint">screen · interview · final</div></div>
-    <div class="card"><div class="stat-value num">${offers}</div><div class="stat-label">Offers on the table</div><div class="stat-hint">${offers ? "review terms before replying" : "keep the funnel fed"}</div></div>
-    <div class="card"><div class="stat-value num">${weekActions}</div><div class="stat-label">Actions this week</div><div class="stat-hint">${respRate === null ? "apps + touches + interviews" : `<span class="${respRate >= 15 ? "up" : "down"}">${respRate}% response rate</span>`}</div></div>
-  </div>
-
-  <div class="grid cols2" style="margin-top:16px">
-    <div class="card">
-      <h3>Pipeline funnel</h3>
-      ${funnel.map((f) => `<div class="funnel-row">
-        <span class="lbl">${f.s}</span>
-        <div class="funnel-bar"><div class="funnel-fill" style="width:${(f.n / maxN) * 100}%;background:${STAGE_COLOR[f.s]}"></div></div>
-        <span class="num" style="text-align:right">${f.n}</span></div>`).join("")}
-      ${open.length === 0 ? '<div class="empty">Nothing in the pipeline yet — <strong>add an application</strong> or copy a Find Jobs prompt.</div>' : ""}
-    </div>
-    <div class="card">
-      <h3>Next actions</h3>
-      ${actions.length ? actions.map((r) => `<div class="action-item">
-          <div class="action-main">
-            <div class="action-title">${esc(r.nextAction)}</div>
-            <div class="action-sub">${appLabel(r)} · ${esc(r.stage)}</div>
-          </div>${dueBadge(r.due)}
-        </div>`).join("") : '<div class="empty">No pending actions. Every open application should have one — run a <strong>weekly review</strong>.</div>'}
-    </div>
-  </div>
-
-  <div class="grid cols2" style="margin-top:16px">
-    <div class="card"><h3>Weekly activity</h3>${weeklyChart()}</div>
-    <div class="card"><h3>Where applications come from</h3>${sourceDonut(open)}</div>
-  </div>
-
-  <div class="grid cols2" style="margin-top:16px">
-    <div class="card">
-      <h3>Best-fit open roles</h3>
-      ${fits.length ? fits.map((r) => `<div class="fit-row">
-          <span class="fit-score num" style="color:${r.fitScore >= 8 ? "var(--success)" : r.fitScore >= 6 ? "var(--warn)" : "var(--danger)"}">${r.fitScore}</span>
-          <span class="fit-name">${appLabel(r)}<small>${esc(r.stage)}${r.salary ? " · " + esc(r.salary) : ""}</small></span>
-        </div>`).join("") : '<div class="empty">Fit scores appear once applications have a scored fit assessment (resume-tailor and find-jobs write them).</div>'}
-    </div>
-    <div class="card">
-      <h3>Research shelf</h3>
-      ${shelfItems.length ? `<div class="shelf">${shelfItems.map((f) =>
-        `<button class="chip" data-view="${esc(f.path)}" data-title="${esc(f.name)}">${ICONS.doc}${esc(f.name.replace(/\.md$/, ""))}</button>`).join("")}</div>`
-        : '<div class="empty">Company research, industry deep dives, comparisons, and prep packs will collect here as you generate them.</div>'}
-    </div>
-  </div>`;
-}
-
-function weeklyChart() {
-  const weeks = state.weekly.slice(-8);
-  if (!weeks.length) return '<div class="empty">Logged automatically when you run weekly reviews — applications, human touches, and interviews per week.</div>';
-  const W = 560, H = 190, pad = 26, bw = 12, gap = 4;
-  const maxV = Math.max(1, ...weeks.flatMap((w) => [w.apps, w.touches, w.interviews]));
-  const groupW = (W - pad * 2) / weeks.length;
-  const y = (v) => H - 30 - (v / maxV) * (H - 55);
-  const series = [["apps", "var(--st-applied)"], ["touches", "var(--cyan)"], ["interviews", "var(--st-interview)"]];
-  let bars = "";
-  weeks.forEach((w, i) => {
-    const x0 = pad + i * groupW + (groupW - (bw * 3 + gap * 2)) / 2;
-    series.forEach(([key, color], j) => {
-      const v = w[key];
-      bars += `<rect x="${x0 + j * (bw + gap)}" y="${y(v)}" width="${bw}" height="${H - 30 - y(v)}" rx="3" fill="${color}"><title>${key}: ${v}</title></rect>`;
+// Demo-only: apply a mutation to the in-memory state, mirroring the server's write endpoints.
+function applyDemoMutation(path, body) {
+  const now = state.today;
+  const row = state.pipeline.find((r) => r.file === body.file);
+  if (path === "/api/stage" && row) {
+    if (String(body.stage).startsWith("closed-")) {
+      state.pipeline = state.pipeline.filter((r) => r !== row);
+      state.archive.unshift({ company: row.company, role: row.role, outcome: body.stage, closed: now, takeaway: "" });
+    } else {
+      row.stage = body.stage; row.lastTouch = now; row.stageSince = now;
+      if (body.stage === "applied" && !row.applied) row.applied = now;
+    }
+  } else if (path === "/api/touch" && row) {
+    if (body.note) { row.timeline = [{ date: now, note: body.note }, ...(row.timeline || [])]; row.lastTouch = now; }
+    if (body.nextAction !== undefined) row.nextAction = body.nextAction;
+    if (body.due !== undefined) row.due = body.due;
+    if (body.fields) for (const k of ["location", "salary", "source", "link"]) if (body.fields[k] !== undefined) row[k] = body.fields[k];
+  } else if (path === "/api/rounds" && row) {
+    row.rounds = body.rounds; row.lastTouch = now;
+  } else if (path === "/api/application") {
+    state.pipeline.push({
+      company: body.company, role: body.role, stage: body.stage || "identified",
+      applied: body.stage === "applied" ? now : "", lastTouch: now, stageSince: now,
+      nextAction: body.nextAction || "Tailor resume + apply", due: body.due || "",
+      location: body.location || "", salary: body.salary || "", source: body.source || "",
+      link: body.link || "", rounds: [], timeline: [{ date: now, note: "added (demo)" }],
+      file: `demo-${Date.now()}-${(body.company || "job").toLowerCase().replace(/[^a-z0-9]+/g, "-")}.md`,
     });
-    bars += `<text x="${pad + i * groupW + groupW / 2}" y="${H - 10}" text-anchor="middle" font-size="10" fill="var(--faint)">${w.week.slice(5)}</text>`;
-  });
-  return `<div class="chart-wrap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Weekly activity chart">
-    <line x1="${pad}" y1="${H - 30}" x2="${W - pad}" y2="${H - 30}" stroke="var(--border-strong)"/>${bars}</svg></div>
-  <div class="legend"><span><span class="swatch" style="background:var(--st-applied)"></span>Applications</span>
-  <span><span class="swatch" style="background:var(--cyan)"></span>Human touches</span>
-  <span><span class="swatch" style="background:var(--st-interview)"></span>Interviews</span></div>`;
+  }
 }
 
-function sourceDonut(open) {
-  const counts = {};
-  open.forEach((r) => { const s = (r.source || "unknown").toLowerCase(); counts[s] = (counts[s] || 0) + 1; });
-  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  if (!entries.length) return '<div class="empty">Source breakdown (referral vs. cold vs. board) appears once applications are tracked.</div>';
-  const total = entries.reduce((s, [, n]) => s + n, 0);
-  const colors = ["var(--accent)", "var(--cyan)", "var(--success)", "var(--warn)", "var(--st-interview)", "var(--danger)"];
-  const R = 52, C = 2 * Math.PI * R;
-  let offset = 0, segs = "";
-  entries.forEach(([, n], i) => {
-    const frac = n / total;
-    segs += `<circle r="${R}" cx="70" cy="70" fill="none" stroke="${colors[i % colors.length]}" stroke-width="18"
-      stroke-dasharray="${frac * C} ${C}" stroke-dashoffset="${-offset * C}" transform="rotate(-90 70 70)"/>`;
-    offset += frac;
-  });
-  const referrals = counts["referral"] || 0;
-  return `<div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">
-    <svg viewBox="0 0 140 140" width="140" height="140" role="img" aria-label="Application sources">${segs}
-      <text x="70" y="66" text-anchor="middle" font-size="22" font-weight="700" fill="var(--text)" font-family="Space Grotesk">${total}</text>
-      <text x="70" y="84" text-anchor="middle" font-size="10" fill="var(--muted)">open</text></svg>
-    <div class="legend" style="flex-direction:column;gap:8px;margin-top:0">
-      ${entries.map(([s, n], i) => `<span><span class="swatch" style="background:${colors[i % colors.length]}"></span>${esc(s)} · <b class="num">${n}</b></span>`).join("")}
-    </div></div>
-  <div class="stat-hint" style="margin-top:12px">${referrals / (total || 1) >= 0.3 ? "Healthy referral share — referrals convert several times better than cold applications." : "Referrals convert several times better than cold applications — for each batch of apps, add a few human touches."}</div>`;
+/* ---- date helpers ---- */
+const parseDate = (s) => (/^\d{4}-\d{2}-\d{2}$/.test(s || "") ? new Date(s + "T00:00:00") : null);
+function daysSince(dateStr) {
+  const d = parseDate(dateStr);
+  if (!d) return null;
+  return Math.max(0, Math.round((new Date(state.today + "T00:00:00") - d) / 864e5));
+}
+const stageAge = (row) => daysSince(row.stageSince || row.lastTouch || row.applied);
+const isOverdue = (row) => !!row.due && row.due !== "—" && row.due < state.today;
+const needsAttention = (row) => isOverdue(row) || !row.nextAction || row.nextAction === "—";
+
+/* ---- interview rounds ---- */
+const ROUND_TYPES = ["phone", "recruiter", "technical", "onsite", "panel", "final", "other"];
+const ROUND_STATUSES = ["scheduled", "completed", "passed", "rejected"];
+function roundSummary(rounds) {
+  const latest = rounds[rounds.length - 1];
+  const label = latest.type || latest.status || "logged";
+  return `Round ${rounds.length} · ${label}`;
+}
+function nextScheduledRound(rounds) {
+  return (rounds || []).find((r) => r.status === "scheduled" && /^\d{4}-\d{2}-\d{2}$/.test(r.date || "")) || null;
 }
 
-/* ---------------- pipeline (kanban) ---------------- */
+/* ---- shell ---- */
+function render() {
+  document.querySelectorAll(".nav-tab").forEach((b) => b.classList.toggle("active", b.dataset.tab === view));
+  if (view === "board") renderBoard(); else renderOverview();
+}
+function setView(v) { view = v; localStorage.setItem("chq-view", v); render(); }
 
-function renderPipeline() {
-  const cols = OPEN_STAGES.map((stage) => {
-    const cards = state.pipeline.filter((r) => r.stage === stage);
-    return `<div class="kcol">
-      <div class="kcol-head"><span class="swatch" style="background:${STAGE_COLOR[stage]}"></span>${stage}<span class="count num">${cards.length}</span></div>
-      <div class="klist glass" data-stage="${stage}">
-        ${cards.map((r) => `<div class="kcard stage-tint" draggable="true" data-file="${esc(r.file)}" data-title="${appLabel(r)}" style="border-top-color:${STAGE_COLOR[stage]}">
-          <div class="co">${esc(r.company)}</div><div class="ro">${esc(r.role)}</div>
-          <div class="meta">${r.fitScore != null ? `<span class="fit-mini num">fit ${r.fitScore}</span>` : ""}
-          ${r.due ? `<span class="due-mini num">due ${esc(r.due.slice(5))}</span>` : ""}</div>
-        </div>`).join("")}
-      </div></div>`;
+/* ---- board ---- */
+function tileHtml(row) {
+  const unparsed = !row.file;
+  const age = stageAge(row);
+  const meta = [row.location, row.salary].filter((v) => v && v !== "—").map(esc).join(" · ");
+  const action = row.nextAction && row.nextAction !== "—"
+    ? `<div class="tile-action ${isOverdue(row) ? "overdue" : ""}">↳ ${esc(row.nextAction)}${row.due && row.due !== "—" ? ` <span class="due">${esc(row.due)}</span>` : ""}</div>`
+    : `<div class="tile-action missing">no next action</div>`;
+  return `<article class="tile ${unparsed ? "unparsed" : ""}" draggable="${!unparsed}" data-file="${esc(row.file || "")}">
+    <div class="tile-top">
+      <div><div class="tile-company">${esc(row.company)}</div><div class="tile-role">${esc(row.role)}</div></div>
+      ${row.link && row.link !== "#" && row.link !== "—" ? `<a class="tile-link" href="${esc(row.link)}" target="_blank" rel="noopener" title="Open posting">↗</a>` : ""}
+    </div>
+    ${meta ? `<div class="tile-meta">${meta}</div>` : ""}
+    <div class="tile-badges">
+      ${row.source && row.source !== "—" ? `<span class="badge">${esc(row.source)}</span>` : ""}
+      ${age != null ? `<span class="badge dim">${age}d in stage</span>` : ""}
+      ${row.rounds && row.rounds.length ? `<span class="badge round-badge">${esc(roundSummary(row.rounds))}</span>` : ""}
+      ${nextScheduledRound(row.rounds) ? `<span class="badge dim">next: ${esc(nextScheduledRound(row.rounds).date)}</span>` : ""}
+      ${STAGE_IDS.includes(row.stage) ? "" : `<span class="badge dim">unknown stage: ${esc(row.stage)}</span>`}
+      ${unparsed ? `<span class="badge dim">unparsed row — fix in tracker.md</span>` : ""}
+    </div>
+    ${action}
+  </article>`;
+}
+
+function renderBoard() {
+  const misfits = state.pipeline.filter((r) => !STAGE_IDS.includes(r.stage)); // surfaced in "Saved", never hidden
+  const cols = STAGES.map((s) => {
+    const rows = state.pipeline.filter((r) => r.stage === s.id).concat(s.id === "identified" ? misfits : []);
+    return `<section class="col" data-stage="${s.id}">
+      <header class="col-head stage-${s.id}"><span>${s.label}</span><span class="count">${rows.length}</span></header>
+      <div class="col-body">${rows.map(tileHtml).join("") || '<div class="col-empty">·</div>'}</div>
+    </section>`;
+  }).join("");
+  const archive = state.archive.length
+    ? `<details class="archive"><summary>Closed · ${state.archive.length}</summary><div class="archive-rows">${
+        state.archive.map((a) => `<div class="archive-row"><strong>${esc(a.company)}</strong> ${esc(a.role)}
+          <span class="badge dim">${esc(a.outcome)}</span> <span class="dim">${esc(a.closed)}</span>${
+          a.takeaway && a.takeaway !== "—" ? ` — ${esc(a.takeaway)}` : ""}</div>`).join("")}</div></details>`
+    : "";
+  $("#view").innerHTML = `<div class="board">${cols}</div>${archive}`;
+  wireBoard();
+}
+
+function wireBoard() {
+  document.querySelectorAll(".tile[data-file]:not(.unparsed)").forEach((t) => {
+    t.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", t.dataset.file); t.classList.add("dragging"); });
+    t.addEventListener("dragend", () => t.classList.remove("dragging"));
+    t.addEventListener("click", (e) => { if (e.target.closest("a")) return; openDetail(t.dataset.file); });
+  });
+  document.querySelectorAll(".col").forEach((col) => {
+    col.addEventListener("dragover", (e) => { e.preventDefault(); col.classList.add("dropping"); });
+    col.addEventListener("dragleave", () => col.classList.remove("dropping"));
+    col.addEventListener("drop", async (e) => {
+      e.preventDefault();
+      col.classList.remove("dropping");
+      const file = e.dataTransfer.getData("text/plain");
+      const row = state.pipeline.find((r) => r.file === file);
+      if (!row || row.stage === col.dataset.stage) return;
+      try { await apiPost("/api/stage", { file, stage: col.dataset.stage }); } catch (err) { alert(err.message); }
+      await refresh();
+    });
+  });
+}
+
+/* ---- detail drawer ---- */
+function openDetail(file) {
+  const row = state.pipeline.find((r) => r.file === file);
+  if (!row) return;
+  const v = (x) => (x && x !== "—" ? x : "");
+  $("#drawer").innerHTML = `
+    <div class="drawer-head">
+      <div><h2>${esc(row.company)}</h2><p class="dim">${esc(row.role)} · ${esc(row.stage)}</p></div>
+      <button class="icon-btn" id="drawer-close" title="Close">✕</button>
+    </div>
+    <form id="detail-form" class="stack">
+      <label>Next action <input name="nextAction" value="${esc(v(row.nextAction))}"></label>
+      <label>Due <input type="date" name="due" value="${esc(v(row.due))}"></label>
+      <div class="row">
+        <label>Location <input name="location" value="${esc(v(row.location))}"></label>
+        <label>Salary <input name="salary" value="${esc(v(row.salary))}"></label>
+      </div>
+      <div class="row">
+        <label>Source <input name="source" value="${esc(v(row.source))}"></label>
+        <label>Posting link <input name="link" value="${esc(v(row.link))}"></label>
+      </div>
+      <button class="btn primary" type="submit">Save changes</button>
+    </form>
+    <form id="touch-form" class="stack">
+      <label>Log a touch <input name="note" placeholder="e.g. emailed recruiter" autocomplete="off"></label>
+      <button class="btn" type="submit">Log touch</button>
+    </form>
+    <div class="stack rounds-block">
+      <div class="rounds-head"><strong>Interview rounds</strong><button class="btn" type="button" id="add-round">+ Round</button></div>
+      <div id="rounds-list"></div>
+      <button class="btn primary" type="button" id="save-rounds">Save rounds</button>
+    </div>
+    <div class="stack">
+      <label>Close application
+        <select id="close-outcome"><option value="">choose outcome…</option>${OUTCOMES.map((o) => `<option>${o}</option>`).join("")}</select>
+      </label>
+      <button class="btn danger" id="close-app" type="button">Close application</button>
+    </div>
+    ${row.timeline && row.timeline.length ? `<h3>Timeline</h3><ul class="timeline">${
+      row.timeline.map((t) => `<li><span class="dim">${esc(t.date)}</span> ${esc(t.note)}</li>`).join("")}</ul>` : ""}`;
+  document.body.classList.add("drawer-open");
+  $("#drawer-close").onclick = closeDrawer;
+  $("#detail-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    await apiPost("/api/touch", {
+      file,
+      nextAction: f.get("nextAction"),
+      due: f.get("due"),
+      fields: { location: f.get("location"), salary: f.get("salary"), source: f.get("source"), link: f.get("link") },
+    });
+    await refresh();
+    closeDrawer();
+  };
+  $("#touch-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const note = new FormData(e.target).get("note");
+    if (note) { await apiPost("/api/touch", { file, note }); await refresh(); }
+    openDetail(file);
+  };
+
+  // interview rounds: draft array lives in the DOM; add/remove re-render, save persists
+  let draftRounds = (row.rounds || []).map((r) => ({ ...r }));
+  const collectRounds = () => [...$("#rounds-list").querySelectorAll(".round-row")].map((el) => ({
+    date: el.querySelector(".rd-date").value,
+    type: el.querySelector(".rd-type").value,
+    status: el.querySelector(".rd-status").value,
+    notes: el.querySelector(".rd-notes").value.trim(),
+  }));
+  const opt = (list, sel) => list.map((x) => `<option${x === sel ? " selected" : ""}>${x}</option>`).join("");
+  function renderRounds() {
+    $("#rounds-list").innerHTML = draftRounds.length
+      ? draftRounds.map((r, i) => `<div class="round-row" data-i="${i}">
+          <input type="date" class="rd-date" value="${esc(r.date || "")}">
+          <select class="rd-type">${opt(ROUND_TYPES, r.type)}</select>
+          <button class="icon-btn rd-del" type="button" title="Remove round">✕</button>
+          <select class="rd-status">${opt(ROUND_STATUSES, r.status)}</select>
+          <input class="rd-notes" placeholder="notes" value="${esc(r.notes || "")}">
+        </div>`).join("")
+      : '<p class="dim">No rounds yet — add one as interviews get scheduled.</p>';
+    $("#rounds-list").querySelectorAll(".rd-del").forEach((b) =>
+      b.addEventListener("click", () => { const i = +b.closest(".round-row").dataset.i; draftRounds = collectRounds(); draftRounds.splice(i, 1); renderRounds(); }));
+  }
+  renderRounds();
+  $("#add-round").onclick = () => { draftRounds = collectRounds(); draftRounds.push({ date: state.today, type: "phone", status: "scheduled", notes: "" }); renderRounds(); };
+  $("#save-rounds").onclick = async () => {
+    await apiPost("/api/rounds", { file, rounds: collectRounds() });
+    await refresh();
+    openDetail(file);
+  };
+
+  $("#close-app").onclick = async () => {
+    const stage = $("#close-outcome").value;
+    if (!stage) return;
+    await apiPost("/api/stage", { file, stage });
+    await refresh();
+    closeDrawer();
+  };
+}
+function closeDrawer() { document.body.classList.remove("drawer-open"); $("#drawer").innerHTML = ""; }
+
+/* ---- add-job modal ---- */
+function openAdd() {
+  $("#modal").innerHTML = `
+    <div class="modal-card">
+      <div class="modal-head"><h2>Add a job</h2><button class="icon-btn" id="modal-close" title="Close">✕</button></div>
+      <form id="ingest-form" class="stack">
+        <label>Job posting URL <input name="url" type="url" placeholder="https://…" autofocus></label>
+        <div class="row">
+          <button class="btn primary" type="submit">Fetch details</button>
+          <button class="btn" type="button" id="manual-entry">Enter manually</button>
+        </div>
+        <p class="hint" id="ingest-status"></p>
+      </form>
+      <div id="job-form-slot"></div>
+    </div>`;
+  document.body.classList.add("modal-open");
+  $("#modal-close").onclick = closeModal;
+  $("#modal").onclick = (e) => { if (e.target.id === "modal") closeModal(); };
+  $("#manual-entry").onclick = () => showJobForm({ url: $("#ingest-form").url.value.trim() });
+  $("#ingest-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const url = e.target.url.value.trim();
+    if (!url) return showJobForm({});
+    $("#ingest-status").textContent = "Fetching…";
+    try {
+      const r = await apiPost("/api/ingest", { url });
+      $("#ingest-status").textContent = r.partial
+        ? "Couldn't auto-extract — fill in the details manually."
+        : "Details found — review, fix anything, and save.";
+      showJobForm(r.job);
+    } catch (err) {
+      $("#ingest-status").textContent = err.message;
+      showJobForm({ url });
+    }
+  };
+}
+
+function showJobForm(job) {
+  $("#job-form-slot").innerHTML = `
+    <form id="job-form" class="stack">
+      <div class="row">
+        <label>Company <input name="company" required value="${esc(job.company || "")}"></label>
+        <label>Role <input name="role" required value="${esc(job.role || "")}"></label>
+      </div>
+      <div class="row">
+        <label>Location <input name="location" value="${esc(job.location || "")}"></label>
+        <label>Salary <input name="salary" value="${esc(job.salary || "")}"></label>
+      </div>
+      <div class="row">
+        <label>Source <input name="source" value="${esc(job.source || "")}"></label>
+        <label>Starting column
+          <select name="stage">${STAGES.map((s) => `<option value="${s.id}"${s.id === "applied" ? " selected" : ""}>${s.label}</option>`).join("")}</select>
+        </label>
+      </div>
+      <div class="row">
+        <label>Next action <input name="nextAction" placeholder="defaults sensibly if empty"></label>
+        <label>Due <input name="due" type="date"></label>
+      </div>
+      <input type="hidden" name="link" value="${esc(job.url || "")}">
+      <button class="btn primary" type="submit">Save to board</button>
+    </form>`;
+  $("#job-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(e.target).entries());
+    if (!d.nextAction) d.nextAction = d.stage === "applied" ? "Follow up if silent" : "Tailor resume + apply";
+    try { await apiPost("/api/application", d); } catch (err) { $("#ingest-status").textContent = err.message; return; }
+    closeModal();
+    await refresh();
+  };
+}
+
+function closeModal() { document.body.classList.remove("modal-open"); $("#modal").innerHTML = ""; }
+/* ---- overview ---- */
+function renderOverview() {
+  const open = state.pipeline;
+  const interviewing = open.filter((r) => ["screen", "interview", "final"].includes(r.stage)).length;
+  const offers = open.filter((r) => r.stage === "offer").length;
+  const latest = state.weekly[state.weekly.length - 1];
+  const weekAge = latest ? daysSince(latest.week) : null;
+  const actionsThisWeek = latest && weekAge != null && weekAge < 7 ? latest.apps + latest.touches + latest.interviews : 0;
+  const attention = open.filter(needsAttention);
+
+  const cards = [
+    [open.length, "Open applications"],
+    [interviewing, "In interview stages"],
+    [offers, "Offers on the table"],
+    [actionsThisWeek, "Actions this week"],
+  ].map(([n, label]) => `<div class="card stat"><div class="stat-n">${n}</div><div class="stat-label">${label}</div></div>`).join("");
+
+  const attn = attention.length
+    ? attention.map((r) => `<button class="attn-row ${isOverdue(r) ? "overdue" : ""}" data-file="${esc(r.file)}">
+        <strong>${esc(r.company)}</strong> ${esc(r.role)}
+        <span>${isOverdue(r) ? `overdue: ${esc(r.nextAction)} (was due ${esc(r.due)})` : "no next action set"}</span>
+      </button>`).join("")
+    : '<p class="dim">Nothing overdue and every open application has a next action.</p>';
+
+  const max = Math.max(1, ...STAGES.map((s) => open.filter((r) => r.stage === s.id).length));
+  const funnel = STAGES.map((s) => {
+    const n = open.filter((r) => r.stage === s.id).length;
+    return `<div class="funnel-row"><span class="funnel-label">${s.label}</span>
+      <div class="funnel-bar"><div class="funnel-fill stage-${s.id}" style="width:${(n / max) * 100}%"></div></div>
+      <span class="funnel-n">${n}</span></div>`;
   }).join("");
 
-  const closed = `<div class="kcol">
-    <div class="kcol-head"><span class="swatch" style="background:var(--st-closed)"></span>closed<span class="count num">${state.archive.length}</span></div>
-    <div class="klist glass">
-      ${state.archive.slice(-6).reverse().map((a) => `<div class="kcard" style="opacity:.6">
-        <div class="co">${esc(a.company)}</div><div class="ro">${esc(a.role)} · ${esc(a.outcome.replace("closed-", ""))}</div>
-      </div>`).join("") || '<div class="empty">Closed applications archive here with a takeaway.</div>'}
-    </div></div>`;
-
-  return `
-  <div class="page-head">
-    <div><h1>Pipeline</h1><div class="sub">Drag cards between stages — changes write straight to the tracker markdown, so Claude and the dashboard always agree. Click a card for details and actions.</div></div>
-    <button class="btn primary" data-open-add>${ICONS.plus} Add application</button>
-  </div>
-  <div class="kanban">${cols}${closed}</div>
-  ${state.pipeline.length === 0 ? `<div class="grid cols2" style="margin-top:18px">
-    ${promptCard("Fill the pipeline", "Ask Claude to search openings matched to your profile and add the good ones here.", "Find jobs that match my profile and add the ones I pick to my tracker")}
-    ${promptCard("Weekly review", "Claude walks the tracker: stalled apps, due follow-ups, and your weekly action counts.", "Run my weekly pipeline review")}
-  </div>` : ""}`;
+  $("#view").innerHTML = `
+    <div class="stats">${cards}</div>
+    <div class="card"><h2>Needs attention · ${attention.length}</h2>${attn}</div>
+    <div class="card"><h2>Pipeline funnel</h2>${funnel}</div>`;
+  document.querySelectorAll(".attn-row").forEach((b) =>
+    b.addEventListener("click", () => { setView("board"); openDetail(b.dataset.file); }));
 }
 
-function wireKanban() {
-  let dragged = null;
-  document.querySelectorAll(".kcard[draggable]").forEach((card) => {
-    card.addEventListener("dragstart", () => { dragged = card; card.classList.add("dragging"); });
-    card.addEventListener("dragend", () => { dragged = null; card.classList.remove("dragging"); });
-    card.addEventListener("click", () => openDrawer(card.dataset.file, card.dataset.title));
-    card.addEventListener("keydown", (e) => { if (e.key === "Enter") openDrawer(card.dataset.file, card.dataset.title); });
-    card.tabIndex = 0;
-  });
-  document.querySelectorAll(".klist[data-stage]").forEach((list) => {
-    list.addEventListener("dragover", (e) => { e.preventDefault(); list.classList.add("dragover"); });
-    list.addEventListener("dragleave", () => list.classList.remove("dragover"));
-    list.addEventListener("drop", async (e) => {
-      e.preventDefault(); list.classList.remove("dragover");
-      if (!dragged || !guardWrite()) return;
-      const file = dragged.dataset.file, stage = list.dataset.stage;
-      try { await api("/api/stage", { file, stage }); toast(`Moved to ${stage}`); await refresh(); }
-      catch (err) { toast("Move failed: " + err.message); }
-    });
-  });
-}
-
-/* ---------------- drawer + modal ---------------- */
-
-async function openDrawer(relPathOrFile, title, isAppFile = true) {
-  const overlay = $("#drawerOverlay");
-  $("#drawerTitle").textContent = title || relPathOrFile;
-  $("#drawerBody").innerHTML = '<div class="loading">Loading…</div>';
-  $("#drawerActions").innerHTML = "";
-  overlay.hidden = false;
-
-  const rel = isAppFile ? "applications/" + relPathOrFile : relPathOrFile;
-  if (isAppFile && !demo) {
-    const row = state.pipeline.find((r) => r.file === relPathOrFile);
-    if (row) {
-      $("#drawerActions").innerHTML = `
-        <div class="row">
-          <select id="dStage" aria-label="Stage">${[...OPEN_STAGES, ...CLOSED_STAGES].map((s) => `<option ${s === row.stage ? "selected" : ""}>${s}</option>`).join("")}</select>
-          <button class="btn small" id="dStageGo">Set stage</button>
-        </div>
-        <div class="row">
-          <input id="dNote" placeholder="Log a touch — e.g. 'sent follow-up to recruiter'">
-          <button class="btn small" id="dNoteGo">Log</button>
-        </div>
-        <div class="row">
-          <input id="dNext" placeholder="Next action" value="${esc(row.nextAction === "—" ? "" : row.nextAction)}">
-          <input id="dDue" type="date" value="${/^\d{4}-\d{2}-\d{2}$/.test(row.due) ? row.due : ""}" style="max-width:150px">
-          <button class="btn small" id="dNextGo">Save</button>
-        </div>`;
-      $("#dStageGo").onclick = async () => {
-        if (!guardWrite()) return;
-        try { await api("/api/stage", { file: row.file, stage: $("#dStage").value }); toast("Stage updated"); closeOverlays(); await refresh(); }
-        catch (e) { toast(e.message); }
-      };
-      $("#dNoteGo").onclick = async () => {
-        const note = $("#dNote").value.trim();
-        if (!note || !guardWrite()) return;
-        try { await api("/api/touch", { file: row.file, note }); toast("Logged"); openDrawer(relPathOrFile, title); await refresh(); }
-        catch (e) { toast(e.message); }
-      };
-      $("#dNextGo").onclick = async () => {
-        if (!guardWrite()) return;
-        try { await api("/api/touch", { file: row.file, nextAction: $("#dNext").value.trim(), due: $("#dDue").value }); toast("Next action saved"); await refresh(); }
-        catch (e) { toast(e.message); }
-      };
-    }
-  }
-  if (demo) {
-    $("#drawerBody").innerHTML = '<div class="empty">In the real Career HQ this drawer shows the application\'s full markdown record — posting summary, fit assessment, contacts, and a timestamped timeline log — with controls to change stage, log touches, and set the next action.</div>';
-    return;
-  }
-  try {
-    const { content } = await api("/api/file?path=" + encodeURIComponent(rel));
-    $("#drawerBody").innerHTML = renderMarkdown(content);
-  } catch {
-    $("#drawerBody").innerHTML = '<div class="empty">File not found.</div>';
-  }
-}
-
-function closeOverlays() { $("#drawerOverlay").hidden = true; $("#addOverlay").hidden = true; }
-
-function wireModals() {
-  document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", closeOverlays));
-  document.querySelectorAll(".overlay").forEach((ov) => ov.addEventListener("click", (e) => { if (e.target === ov) closeOverlays(); }));
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeOverlays(); });
-
-  $("#addForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!guardWrite()) return;
-    const data = Object.fromEntries(new FormData(e.target).entries());
-    try {
-      await api("/api/application", data);
-      toast(`${data.company} added to pipeline`);
-      e.target.reset(); closeOverlays(); await refresh();
-    } catch (err) { toast("Add failed: " + err.message); }
-  });
-}
-
-/* ---------------- section pages ---------------- */
-
-function profileCard() {
-  const p = state.profile;
-  const row = (ok, label) => `<div class="action-item"><span class="dot ${ok ? "ok" : "warn"}"></span>
-    <div class="action-main"><div class="action-title">${label}</div></div>
-    <span class="badge ${ok ? "soon" : "today"}">${ok ? "ready" : "needs setup"}</span></div>`;
-  return `<div class="card">
-    <h3>Profile status</h3>
-    ${row(p.masterReady, "Master resume")}
-    ${row(p.positioningReady, "Positioning & targets")}
-    ${row(p.storyBankReady, `Story bank${p.storyCount ? ` · ${p.storyCount} stories` : ""}`)}
-    ${!p.masterReady || !p.positioningReady ? '<div class="empty">Everything below works better once the profile is filled — one guided interview sets it up.</div>' : ""}
-  </div>`;
-}
-
-function renderResume() {
-  return `
-  <div class="page-head"><div><h1>Resume Studio</h1><div class="sub">The master resume holds everything; tailored one-page versions are generated per posting and collected here.</div></div></div>
-  <div class="grid cols2">
-    ${profileCard()}
-    <div class="card"><h3>Tailored resumes</h3>${fileList(state.resumes, "No tailored resumes yet — copy the prompt below with a posting you like.")}</div>
-  </div>
-  <div class="grid cols3" style="margin-top:16px">
-    ${promptCard("Set up / refresh profile", "Guided interview that builds your master resume, positioning, and story bank.", "Set up my career profile (run career-onboard)")}
-    ${promptCard("Tailor to a posting", "Extracts the posting's requirements, maps your evidence, mirrors keywords, flags gaps honestly.", "Tailor my resume to this job posting:\n[paste the posting text or link here]")}
-    ${promptCard("Cover letter", "Three short paragraphs in your voice, hitting their top requirements.", "Write a cover letter for the [role] posting at [company], based on my tailored resume")}
-  </div>`;
-}
-
-function renderJobs() {
-  const identified = state.pipeline.filter((r) => r.stage === "identified");
-  return `
-  <div class="page-head"><div><h1>Job Search</h1><div class="sub">Claude searches every connected job board (Indeed + ZipRecruiter today, plus the web) with your positioning, merges and scores results against your resume, and feeds picks into the pipeline.</div></div></div>
-  <div class="grid cols3">
-    ${promptCard("Matched search", "Searches your target titles and ranks results by fit against your profile.", "Find jobs that match my profile")}
-    ${promptCard("Targeted search", "Same scoring, but you steer the title and location.", "Find [job title] roles in [location or remote] and rank them against my resume")}
-    ${promptCard("Log a posting I found", "Hand Claude any posting; it assesses fit and adds it to the tracker.", "I found this posting — assess my fit and add it to my tracker:\n[paste link or text]")}
-  </div>
-  <div class="card" style="margin-top:16px">
-    <h3>Identified — not yet applied</h3>
-    ${identified.length ? identified.map((r) => `<div class="action-item">
-      <div class="action-main"><div class="action-title">${appLabel(r)}</div>
-      <div class="action-sub">${esc(r.location || "")}${r.salary ? " · " + esc(r.salary) : ""}${r.fitScore != null ? ` · fit ${r.fitScore}/10` : ""}</div></div>
-      ${dueBadge(r.due)}</div>`).join("") : '<div class="empty">Roles you\'re considering land here before you apply.</div>'}
-  </div>`;
-}
-
-function renderInterview() {
-  const upcoming = state.pipeline.filter((r) => ["screen", "interview", "final"].includes(r.stage));
-  return `
-  <div class="page-head"><div><h1>Interview Prep</h1><div class="sub">Per-company prep packs: company brief, likely questions mapped to your story bank, questions to ask, and mock interview rounds.</div></div></div>
-  <div class="grid cols2">
-    <div class="card"><h3>In interview stages</h3>
-      ${upcoming.length ? upcoming.map((r) => `<div class="action-item">
-        <div class="action-main"><div class="action-title">${appLabel(r)}</div><div class="action-sub">${esc(r.stage)} · ${esc(r.nextAction)}</div></div>
-        ${dueBadge(r.due)}</div>`).join("") : '<div class="empty">When an application reaches screen/interview/final it shows up here.</div>'}
-    </div>
-    <div class="card"><h3>Prep packs</h3>${fileList(state.prepPacks, "Prep packs are saved per company + role once generated.")}</div>
-  </div>
-  <div class="grid cols2" style="margin-top:16px">
-    ${promptCard("Build a prep pack", "Company research, likely questions mapped to your stories, gaps flagged, questions to ask.", "Prep me for my [round type] interview at [company] for the [role] role")}
-    ${promptCard("Mock interview", "Claude plays the interviewer, one question at a time, with specific critique after each answer.", "Run a mock interview with me for my upcoming [company] interview")}
-  </div>`;
-}
-
-function renderCompare() {
-  return `
-  <div class="page-head"><div><h1>Compare Roles</h1><div class="sub">Head-to-head scorecard weighted by your priorities, ending in an actual recommendation — comp, growth, culture, risk.</div></div></div>
-  <div class="card"><h3>Past comparisons</h3>${fileList(state.research.comparisons, "Comparisons are saved here so decisions stay auditable.")}</div>
-  <div class="grid cols2" style="margin-top:16px">
-    ${promptCard("Compare two roles", "Works on tracker entries, raw postings, or written offers — both sides researched evenly first.", "Compare [role A at company A] vs [role B at company B] and recommend one")}
-    ${promptCard("Offer vs. staying put", "Treats your current situation as one of the options, with the same scorecard.", "Compare the [company] offer against staying in my current position")}
-  </div>`;
-}
-
-function renderIndustry() {
-  return `
-  <div class="page-head"><div><h1>Industry Intel</h1><div class="sub">Deep dives on an industry + position: market forces, hiring trends, comp benchmarks, skill demand — always ending with what it means for your candidacy.</div></div></div>
-  <div class="grid cols2">
-    <div class="card"><h3>Industry deep dives</h3>${fileList(state.research.industries, "Analyses are saved and cited so they stay useful past this week.")}</div>
-    <div class="card"><h3>Company research</h3>${fileList(state.research.companies, "Company briefs from interview prep and comparisons collect here.")}</div>
-  </div>
-  <div class="grid cols2" style="margin-top:16px">
-    ${promptCard("Industry deep dive", "Market, players, hiring trends, comp, skill demand, risks — with sources.", "Do a deep industry analysis of [industry] for the [role] position")}
-    ${promptCard("Company brief", "Ratings, culture signals, salary bands, and recent news for one employer.", "Research [company] as an employer — culture, ratings, salaries for [role], recent news")}
-  </div>`;
-}
-
-/* ---------------- wiring ---------------- */
-
-function wireMain() {
-  document.querySelectorAll("[data-copy]").forEach((b) => b.addEventListener("click", () => copyText(b.dataset.copy)));
-  document.querySelectorAll("[data-open-add]").forEach((b) => b.addEventListener("click", () => {
-    if (demo) { toast("Adding applications works in the real Career HQ — this demo is read-only"); return; }
-    $("#addOverlay").hidden = false;
-    $('#addForm input[name="company"]').focus();
-  }));
-  document.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => openDrawer(b.dataset.view, b.dataset.title, false)));
-  if (currentSection() === "pipeline") wireKanban();
-}
-
-/* ---------------- boot ---------------- */
-
-buildNav();
-wireModals();
-window.addEventListener("hashchange", render);
-refresh();
+/* ---- init ---- */
+document.querySelectorAll(".nav-tab").forEach((b) => b.addEventListener("click", () => setView(b.dataset.tab)));
+$("#add-job").addEventListener("click", () => openAdd());
+$("#demo-toggle").addEventListener("change", (e) => {
+  demo = e.target.checked;
+  localStorage.setItem("chq-demo", demo ? "1" : "0");
+  closeDrawer(); closeModal();
+  load().catch((err) => { $("#view").innerHTML = `<p class="error">Failed to load: ${esc(err.message)}</p>`; });
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (typeof closeModal === "function") closeModal(); closeDrawer(); } });
+load().catch((e) => { $("#view").innerHTML = `<p class="error">Failed to load: ${esc(e.message)}</p>`; });
