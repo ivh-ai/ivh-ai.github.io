@@ -389,15 +389,6 @@ mark.todo {
 .timeline-title { font-size: 17px; margin-bottom: 4px; }
 .timeline-desc { color: var(--text-muted); font-size: 15px; margin: 0; }
 
-.timeline-points {
-  margin: 6px 0 0;
-  padding-left: 18px;
-  display: grid;
-  gap: 5px;
-  color: var(--text-muted);
-  font-size: 15px;
-}
-.timeline-points li::marker { color: var(--accent-2); }
 
 /* ---------- Certifications ---------- */
 .cert-groups {
