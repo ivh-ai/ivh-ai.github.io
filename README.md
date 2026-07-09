@@ -11,7 +11,9 @@ Plain HTML/CSS/JS — no build step, no dependencies.
 - `styles.css` — design system (colors/spacing in `:root` variables)
 - `script.js` — mobile nav + scroll-reveal animations
 - `favicon.svg` — IH monogram
-- `docs/` — per-project documentation pages (cote, mathsprint, careerhq + shared docs.css)
+- `docs/` — two pages per project plus shared docs.css:
+  `<project>-instructions.html` (visitor how-to guide) and
+  `<project>-build.html` (technical build story)
 - `cote/`, `mathsprint/` — bundled playable game demos
 - `careerhq-demo/` — static read-only Career HQ dashboard demo with fictional
   sample data (adapted from `../Career HQ/career-dashboard/public/`; the server

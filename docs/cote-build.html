@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How COTE Was Built | Ishaan Hattangady</title>
+  <meta name="description" content="The technical story behind COTE: D3 globe rendering, Levenshtein fuzzy matching, Supabase leaderboard architecture, and the bugs fixed along the way." />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-brand" href="../index.html">
+        <span class="brand-mark" aria-hidden="true">IH</span>
+        Ishaan Hattangady
+      </a>
+      <div class="nav-menu" style="display:flex">
+        <a class="nav-link" href="../index.html#projects">← All projects</a>
+        <a class="nav-link" href="cote-instructions.html">How to use</a>
+        <a class="btn btn-small btn-primary" href="../cote/">Play COTE</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="doc-hero">
+      <div class="container container-narrow">
+        <div class="project-icon" aria-hidden="true">🌍</div>
+        <p class="eyebrow">How it was built</p>
+        <h1 class="doc-title">Building COTE</h1>
+        <p class="doc-lede">
+          A 3D globe, typo-forgiving spell checking, and a leaderboard shared across every
+          device — built iteratively with Claude Code from first prompt to public deployment.
+        </p>
+        <ul class="tag-list" aria-label="Technologies">
+          <li>React</li><li>Vite</li><li>D3.js</li><li>TopoJSON</li><li>Supabase</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>The requirements</h2>
+        <p>Five things were non-negotiable from the start:</p>
+        <ul>
+          <li>A <strong>3D interactive globe</strong> updating in real time as players answer</li>
+          <li>Countries filled in with <strong>real topographical colors</strong> when guessed</li>
+          <li>A <strong>global leaderboard</strong> shared across all devices, no login</li>
+          <li><strong>Smart spell-checking</strong> — accept small typos, suggest near-misses</li>
+          <li>Zero setup for the player: open a link, start typing</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>The stack, and why each piece</h2>
+        <div class="fact-grid">
+          <div class="fact-card">
+            <h4>React + Vite</h4>
+            <p>React breaks the game into components (globe, input bar, leaderboard) and re-renders automatically as state changes; Vite provides the instant dev server and production bundling.</p>
+          </div>
+          <div class="fact-card">
+            <h4>D3.js + TopoJSON</h4>
+            <p>D3 projects spherical map data onto a 2D screen and animates rotation; TopoJSON stores every country's outline in a compact format D3 reads directly.</p>
+          </div>
+          <div class="fact-card">
+            <h4>Supabase</h4>
+            <p>A cloud Postgres database with a REST API — the entire backend. It stores the leaderboard so every device reads and writes the same top-10 list.</p>
+          </div>
+          <div class="fact-card">
+            <h4>Claude Code</h4>
+            <p>Wrote, debugged, and iterated the whole codebase — including running a full 197-country simulation to verify rendering before launch.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>Under the hood</h2>
+        <h3>Rendering the globe</h3>
+        <p>
+          The globe is D3's <code>geoOrthographic</code> projection mapping spherical
+          coordinates to SVG paths — one <code>&lt;path&gt;</code> per country. A
+          <code>requestAnimationFrame</code> loop runs continuously but only re-renders when
+          the projection is "dirty" (the player dragged, or a zoom animation is playing). Fill
+          colors come from a 197-entry <code>TOPO_COLOR</code> table keyed by country ID.
+        </p>
+        <h3>Typo forgiveness, done twice</h3>
+        <p>
+          Two Levenshtein edit-distance functions do different jobs. A fast version with an
+          early exit at distance 2 decides <em>acceptance</em>: any input within one edit of a
+          country name or alias counts. A separate full version computes true similarity for
+          the <em>"Did you mean?"</em> feature — an unguessed country scoring ≥ 75% similarity
+          gets suggested. They were originally one function; splitting them fixed a real bug
+          (see below).
+        </p>
+        <h3>A leaderboard with no server</h3>
+        <p>
+          The game calls Supabase's REST API directly — no SDK, no backend code. Row Level
+          Security allows public <code>SELECT</code>, <code>INSERT</code>, and
+          <code>DELETE</code>, but blocks <code>PATCH</code>; updating a returning player's
+          score is therefore a delete-then-insert, done only when the new score beats their
+          best. Score formula: <code>countries × 1000 − seconds</code>, so more countries
+          always outranks a faster clock.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>Bugs that taught something</h2>
+        <div class="fact-grid">
+          <div class="fact-card">
+            <h4>The gray-country bug</h4>
+            <p>Correctly guessed countries stayed gray. TopoJSON zero-pads IDs ("076" for Brazil) while the game data doesn't ("76"). One conversion — <code>String(+d.id)</code> — fixed all 197, then a simulation of every country name verified it.</p>
+          </div>
+          <div class="fact-card">
+            <h4>"Frnce" → North Macedonia?</h4>
+            <p>The suggestion engine once offered absurd matches. Cause: the fast edit-distance's early exit returned capped values that inflated similarity scores. Fix: a dedicated full-distance function for suggestions only.</p>
+          </div>
+          <div class="fact-card">
+            <h4>The lonely leaderboard</h4>
+            <p>v1 stored scores in localStorage — every device saw only itself. The fix was replacing it wholesale with Supabase, turning a private scoreboard into a global one.</p>
+          </div>
+          <div class="fact-card">
+            <h4>Tuning the zoom</h4>
+            <p>The zoom-on-guess animation shipped at 7×, felt like whiplash, dropped to 5×, still too much — 3× stuck. Feel is found by iteration, not specification.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>The Claude Code process</h2>
+        <p>
+          The game was built in phases — core loop, topographic colors, spell checking, cloud
+          leaderboard, then polish — each one specified in conversation, implemented by Claude
+          Code, played, critiqued, and revised. Features were cut as deliberately as they were
+          added: an email-invite button (needed a backend), a copy-link share button (wrong URL
+          in production), and a "share with friends" section all got removed to keep the end
+          screen focused. The result ships as a single JSX file by design — fast to build,
+          easy to reason about, no over-engineering for a game this size.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-cta">
+      <div class="container container-narrow">
+        <h2 class="section-title">See it running</h2>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="../cote/">Play COTE</a>
+          <a class="btn btn-ghost" href="cote-instructions.html">How to use</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Ishaan Hattangady</p>
+      <p class="footer-note">Designed &amp; built with <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>

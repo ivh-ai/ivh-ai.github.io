@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How MathSprint Was Built | Ishaan Hattangady</title>
+  <meta name="description" content="The technical story behind MathSprint: a single dependency-free HTML file with a page router, plausible-distractor question generation, and a Supabase leaderboard with localStorage fallback." />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-brand" href="../index.html">
+        <span class="brand-mark" aria-hidden="true">IH</span>
+        Ishaan Hattangady
+      </a>
+      <div class="nav-menu" style="display:flex">
+        <a class="nav-link" href="../index.html#projects">← All projects</a>
+        <a class="nav-link" href="mathsprint-instructions.html">How to use</a>
+        <a class="btn btn-small btn-primary" href="../mathsprint/">Play MathSprint</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="doc-hero">
+      <div class="container container-narrow">
+        <div class="project-icon" aria-hidden="true">⚡</div>
+        <p class="eyebrow">How it was built</p>
+        <h1 class="doc-title">Building MathSprint</h1>
+        <p class="doc-lede">
+          An entire arcade game — four modes, streaks, cloud leaderboards — delivered as one
+          HTML file with zero dependencies. The engineering story is about what was deliberately
+          left out.
+        </p>
+        <ul class="tag-list" aria-label="Technologies">
+          <li>JavaScript</li><li>HTML/CSS</li><li>Supabase</li><li>Zero dependencies</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>The idea</h2>
+        <p>
+          Mental math gets rusty without practice, and most practice tools feel like homework.
+          MathSprint's design brief was an arcade run instead: instant to load, obvious in five
+          seconds, and always worth "one more game." The technical constraint followed from
+          that: <strong>nothing between the player and the game</strong> — no login, no
+          framework payload, no build step.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>Under the hood</h2>
+        <h3>One file, an entire app</h3>
+        <p>
+          Markup, styles, and logic live in a single HTML file. The six screens — home,
+          instructions, game, results, leaderboard, credits — are <code>.page</code> sections
+          toggled by a tiny hand-rolled router that flips an <code>active</code> class.
+          Navigation is instant because nothing loads; the whole game arrived in the first
+          request. It also makes the game absurdly portable: copy one file anywhere a browser
+          runs, and it works.
+        </p>
+        <h3>Questions with honest traps</h3>
+        <p>
+          Problems generate on the fly per mode, and the two wrong choices are built to be
+          <em>plausible</em> — near-misses like off-by-one sums or adjacent times-table values,
+          not random numbers. That's what makes the one-attempt rule meaningful: with obviously
+          wrong distractors, multiple choice would be a reflex test; with close ones, it tests
+          whether you actually did the math.
+        </p>
+        <h3>A leaderboard that degrades gracefully</h3>
+        <p>
+          Scores post to a Supabase table through its REST API, queried per game mode and
+          ordered by score. The notable engineering choice is the fallback: if the Supabase
+          configuration is absent or unreachable, the game silently switches to browser
+          localStorage. The leaderboard becomes device-local instead of global, but nothing
+          breaks — the file even works fully offline.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>Key design decisions</h2>
+        <div class="fact-grid">
+          <div class="fact-card">
+            <h4>No framework, on purpose</h4>
+            <p>For a game this size, React would add a build step, a dependency tree, and load time — and solve no actual problem. Vanilla JS keeps it instant and unbreakable by ecosystem churn.</p>
+          </div>
+          <div class="fact-card">
+            <h4>90 seconds exactly</h4>
+            <p>Long enough to build rhythm, short enough that "one more run" is always justifiable. The session length <em>is</em> the retention mechanic.</p>
+          </div>
+          <div class="fact-card">
+            <h4>Three choices, one attempt</h4>
+            <p>Multiple choice keeps pace high (no number typing); the single attempt keeps it honest. Keyboard shortcuts (1/2/3) reward players who commit.</p>
+          </div>
+          <div class="fact-card">
+            <h4>Per-mode leaderboards</h4>
+            <p>One combined board would just measure addition speed. Separate boards per operation make each mode its own competition — and division its own glory.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>The Claude Code process</h2>
+        <p>
+          MathSprint was specified, built, and polished conversationally with Claude Code: the
+          core loop first, then streaks, then the leaderboard with its fallback behavior, then
+          feel — button states, timing, and the details that make a 90-second loop compulsive.
+          As with every project on this site, the loop was build → play → critique → revise
+          until it felt right to use, not just correct to read.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-cta">
+      <div class="container container-narrow">
+        <h2 class="section-title">See it running</h2>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="../mathsprint/">Play MathSprint</a>
+          <a class="btn btn-ghost" href="mathsprint-instructions.html">How to use</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Ishaan Hattangady</p>
+      <p class="footer-note">Designed &amp; built with <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>

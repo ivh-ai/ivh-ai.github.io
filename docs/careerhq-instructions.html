@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to Use Career HQ | Ishaan Hattangady</title>
+  <meta name="description" content="Visitor's guide to the Career HQ demo: touring the six dashboard sections, dragging pipeline cards, and how the system is used with Claude in a real job search." />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-brand" href="../index.html">
+        <span class="brand-mark" aria-hidden="true">IH</span>
+        Ishaan Hattangady
+      </a>
+      <div class="nav-menu" style="display:flex">
+        <a class="nav-link" href="../index.html#projects">← All projects</a>
+        <a class="nav-link" href="careerhq-build.html">How it was built</a>
+        <a class="btn btn-small btn-primary" href="../careerhq-demo/">Try the demo</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="doc-hero">
+      <div class="container container-narrow">
+        <div class="project-icon" aria-hidden="true">🧭</div>
+        <p class="eyebrow">How to use</p>
+        <h1 class="doc-title">Using Career HQ</h1>
+        <p class="doc-lede">
+          Career HQ is a job-search command center: one dashboard for the pipeline, resumes,
+          interview prep, and research, powered by Claude behind the scenes. This guide tours
+          the interactive demo, then explains how the system runs a real search.
+        </p>
+        <div class="quickstart">
+          <h3>Quick start</h3>
+          <p>Open the demo → click through the six sections in the sidebar → open a pipeline card → try dragging one between stages. Everything you see is fictional sample data, and the demo is read-only.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>Touring the dashboard</h2>
+        <ol class="step-list">
+          <li>
+            <h3>Overview — the whole search at a glance</h3>
+            <p>The landing view answers "how is the search going?" in one screen: open applications, how many are in interview stages, offers on the table, and this week's activity with a response rate. Below that: a stage-by-stage <strong>pipeline funnel</strong>, the <strong>next actions</strong> list with due-date badges (overdue items in red), a weekly activity chart, a donut of where applications come from, best-fit roles ranked by fit score, and a shelf of research documents.</p>
+          </li>
+          <li>
+            <h3>Pipeline — the kanban board</h3>
+            <p>Every application is a card in a stage column: <em>identified → applied → screen → interview → final → offer</em>, plus a closed archive. <strong>Click any card</strong> to open its detail drawer, and <strong>try dragging one</strong> to another column — in the real system that drag rewrites the tracker file on disk. Cards show fit scores and due dates at a glance.</p>
+          </li>
+          <li>
+            <h3>Resume Studio</h3>
+            <p>Shows the profile's readiness (master resume, positioning, story bank) and collects the tailored one-page resumes generated per job posting. The prompt cards below are how new ones get made — more on those in a moment.</p>
+          </li>
+          <li>
+            <h3>Job Search</h3>
+            <p>Where new opportunities enter the system. The "Identified — not yet applied" list holds roles under consideration with their fit scores, locations, and salaries. The prompt cards ask Claude to search connected job boards and rank results against the resume.</p>
+          </li>
+          <li>
+            <h3>Interview Prep</h3>
+            <p>Lists every application currently in an interview stage with its next action and due date, alongside the per-company <strong>prep packs</strong> — research briefs with likely questions mapped to real stories.</p>
+          </li>
+          <li>
+            <h3>Compare Roles &amp; Industry Intel</h3>
+            <p>The decision-support sections: head-to-head role comparisons weighted by personal priorities (ending in an actual recommendation), and saved industry deep dives and company research briefs.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>How it runs a real job search</h2>
+        <p>
+          The dashboard is the window; <strong>Claude is the engine</strong>. Scattered through
+          every section are <em>prompt cards</em> — each has a "Copy prompt" button. In real
+          use, the workflow is:
+        </p>
+        <ol class="step-list">
+          <li>
+            <h3>Copy a prompt, paste it into Claude</h3>
+            <p>"Find jobs that match my profile," "Tailor my resume to this posting," "Prep me for my final-round interview at [company]" — each prompt triggers a purpose-built Claude skill that already knows the rules of the system.</p>
+          </li>
+          <li>
+            <h3>Claude does the work and writes it down</h3>
+            <p>The skill reads the profile, does the searching / tailoring / prep, and saves its output as plain markdown files — which means the dashboard reflects it instantly, since both read the same files.</p>
+          </li>
+          <li>
+            <h3>Everything gets logged</h3>
+            <p>Every application, follow-up, and interview lands in the tracker automatically — the funnel, charts, and response rate on the Overview are computed from that log. A weekly review prompt walks the whole pipeline and flags what's stalling.</p>
+          </li>
+        </ol>
+        <div class="quickstart">
+          <h3>Why the demo is read-only</h3>
+          <p>The real Career HQ runs locally on private career data. The demo swaps that for fictional sample data, so edit actions show a friendly explanation instead of writing anything. For a live walkthrough of the real system, <a href="../index.html#contact">get in touch</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-cta">
+      <div class="container container-narrow">
+        <h2 class="section-title">Explore it yourself</h2>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="../careerhq-demo/">Try the demo</a>
+          <a class="btn btn-ghost" href="careerhq-build.html">How it was built</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Ishaan Hattangady</p>
+      <p class="footer-note">Designed &amp; built with <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>

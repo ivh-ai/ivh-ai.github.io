@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How the Habit Tracker Was Built | Ishaan Hattangady</title>
+  <meta name="description" content="The technical story behind the Habit Tracker: a versioned localStorage schema, a test-driven pure-function core, the nudge engine, and PWA packaging." />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-brand" href="../index.html">
+        <span class="brand-mark" aria-hidden="true">IH</span>
+        Ishaan Hattangady
+      </a>
+      <div class="nav-menu" style="display:flex">
+        <a class="nav-link" href="../index.html#projects">← All projects</a>
+        <a class="nav-link" href="habits-instructions.html">How to use</a>
+        <a class="btn btn-small btn-primary" href="../habits/">Open the app</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="doc-hero">
+      <div class="container container-narrow">
+        <div class="project-icon" aria-hidden="true">🌱</div>
+        <p class="eyebrow">How it was built</p>
+        <h1 class="doc-title">Building the Habit Tracker</h1>
+        <p class="doc-lede">
+          A local-first, installable PWA where the tricky parts — dates, streaks, schedules —
+          were built test-first as pure functions before any UI existed. The most heavily
+          engineered project on this site, by design.
+        </p>
+        <ul class="tag-list" aria-label="Technologies">
+          <li>React</li><li>TypeScript</li><li>Tailwind CSS</li><li>Recharts</li><li>PWA</li><li>Vitest</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>The idea</h2>
+        <p>
+          Habit apps tend to fail in one of two ways: they demand an account and quietly own
+          your data, or they're so bare-bones they stop being motivating. The brief was a
+          tracker that's genuinely pleasant to open daily and completely private — which
+          dictated the architecture: <strong>no backend at all</strong>. All data on-device,
+          app installable and offline, motivation features (streaks, heatmap, nudges) computed
+          locally from first principles.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>Under the hood</h2>
+        <h3>Storage: one key, versioned, validated</h3>
+        <p>
+          Everything lives in localStorage under <code>habit-tracker:v1</code>, accessed only
+          through a typed store module — so a future schema migration or IndexedDB swap touches
+          one file. The model is two arrays: <code>habits</code> (type, optional target/unit,
+          scheduled weekdays, createdAt, soft-delete archivedAt) and <code>entries</code>
+          (habitId, date, value), where the absence of an entry means "not done." Every load
+          runs full shape validation; corrupted data produces a visible warning and a recovery
+          path, never a silent wipe.
+        </p>
+        <h3>A test-driven pure-function core</h3>
+        <p>
+          Date and streak logic is where habit trackers quietly lie to their users. Here it's a
+          <code>lib/</code> of pure TypeScript functions — dates, completion math, streaks,
+          aggregation, nudges — written test-first with Vitest before the UI existed. The edge
+          cases have named tests: weekday-only schedules, archived habits mid-streak,
+          week/month/quarter/year boundaries, export/import round-trips. Completion only counts
+          days that are after <code>createdAt</code>, before <code>archivedAt</code>, and
+          actually scheduled — so a Mon/Wed/Fri habit can't lose its streak on a Sunday.
+        </p>
+        <h3>The nudge engine</h3>
+        <p>
+          One priority-ordered pure function: <code>(habits, entries, today) → nudge | null</code>.
+          Streak-in-danger beats week-slump beats habit-gone-cold beats positive reinforcement,
+          so the user sees exactly one message, and the most actionable one. Wording is picked
+          from template pools by hashing the date — varied day to day with zero stored state.
+        </p>
+        <h3>PWA packaging</h3>
+        <p>
+          <code>vite-plugin-pwa</code> generates the manifest and a Workbox service worker that
+          precaches the entire app — installable on iOS, Android, and desktop, fully functional
+          offline. Charts are Recharts; the heatmap and progress ring are hand-rolled SVG;
+          styling is Tailwind with system-preference dark mode.
+        </p>
+        <h3>The portfolio demo</h3>
+        <p>
+          The demo here is the unmodified production build plus one seed script: on first
+          visit, if no data exists, it writes five sample habits with six weeks of
+          deterministic pseudo-random history (improving over time, streaks left alive) so the
+          charts and nudges demonstrate themselves. It never overwrites existing data — the
+          local-first design guaranteed that for free.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>Key design decisions</h2>
+        <div class="fact-grid">
+          <div class="fact-card">
+            <h4>Local-first, no accounts</h4>
+            <p>Habit data is intimate. On-device storage removes the privacy question and makes the app free to run forever; JSON export/import bridges devices without a server.</p>
+          </div>
+          <div class="fact-card">
+            <h4>TDD where it hurts</h4>
+            <p>UI bugs are visible; streak-math bugs silently erode trust. The pure-logic layer got the test rigor, and the UI got manual verification at phone and laptop widths.</p>
+          </div>
+          <div class="fact-card">
+            <h4>Scheduled days, honest stats</h4>
+            <p>Stats that punish unscheduled days train users to game the tracker. Counting only scheduled days keeps the numbers truthful and the motivation fair.</p>
+          </div>
+          <div class="fact-card">
+            <h4>Ruthless v1 scope</h4>
+            <p>Notifications, sync, per-habit colors, timed habits — all explicitly cut and written down for v2. A tracker people actually open daily beats a feature list.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>The Claude Code process</h2>
+        <p>
+          This project used the most structured process on the site: a brainstormed design
+          spec (screens, data model, nudge rules, and the cut list) was written and approved
+          before implementation, then built with Claude Code test-first from the data layer
+          up — storage, then the tested logic core, then pages, then PWA packaging. The spec
+          lives in the repo alongside the code, which is why this page could quote its
+          decisions verbatim.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-cta">
+      <div class="container container-narrow">
+        <h2 class="section-title">See it running</h2>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="../habits/">Open the Habit Tracker</a>
+          <a class="btn btn-ghost" href="habits-instructions.html">How to use</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Ishaan Hattangady</p>
+      <p class="footer-note">Designed &amp; built with <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -111,3 +111,47 @@ code {
 @media (max-width: 720px) {
   .fact-grid { grid-template-columns: 1fr; }
 }
+
+/* --- instructions pages --- */
+.quickstart {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2);
+  border-radius: var(--radius-sm);
+  padding: var(--s3) var(--s4);
+  margin: var(--s4) 0;
+}
+.quickstart h3 { margin: 0 0 var(--s1); font-size: 16px; }
+.quickstart p { margin: 0; font-size: 15px; }
+
+.step-list {
+  list-style: none;
+  counter-reset: step;
+  padding: 0;
+  display: grid;
+  gap: var(--s3);
+  margin: var(--s3) 0 0;
+}
+.step-list > li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 56px;
+  max-width: 68ch;
+}
+.step-list > li::before {
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 2px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--accent-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 9px;
+}
+.step-list h3 { margin: 0 0 6px; font-size: 17px; }
+.step-list p { margin: 0; font-size: 15px; }
+.step-list p + p { margin-top: 8px; }
