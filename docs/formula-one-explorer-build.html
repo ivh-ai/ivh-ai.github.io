@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How Formula One Explorer Was Built | Ishaan Hattangady</title>
+  <meta name="description" content="The technical story behind Formula One Explorer: a keyless three-API data layer, tiered caching instead of a database, 22 lessons as typed content, and a live timing engine." />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-brand" href="../index.html">
+        <span class="brand-mark" aria-hidden="true">IH</span>
+        Ishaan Hattangady
+      </a>
+      <div class="nav-menu" style="display:flex">
+        <a class="nav-link" href="../index.html#projects">← All projects</a>
+        <a class="nav-link" href="formula-one-explorer-instructions.html">How to use</a>
+        <a class="btn btn-small btn-primary" href="https://github.com/ivh-ai/formula-one-explorer" target="_blank" rel="noopener">View on GitHub</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="doc-hero">
+      <div class="container container-narrow">
+        <div class="project-icon" aria-hidden="true">🏎️</div>
+        <p class="eyebrow">How it was built</p>
+        <h1 class="doc-title">Building Formula One Explorer</h1>
+        <p class="doc-lede">
+          The largest project on this site: 31 planned tasks across 8 phases, 26 commits,
+          96 unit tests, and a full product — learning platform, live race center, and
+          75 years of racing history — running on public APIs with zero configuration.
+        </p>
+        <ul class="tag-list" aria-label="Technologies">
+          <li>Next.js</li><li>React Server Components</li><li>TypeScript</li><li>Tailwind CSS</li><li>TanStack Query</li><li>Recharts</li><li>Vitest</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>The idea</h2>
+        <p>
+          Formula One has two audiences that never get served by the same product: newcomers
+          drowning in jargon, and fans who want timing screens and historical depth. The brief
+          was one application that treats both as first-class — an interactive course with the
+          rigor of a textbook, next to a live race center with the density of a broadcast
+          timing feed. And one constraint above all: <strong>clone, install, run</strong>.
+          No API keys, no database to provision, no accounts.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>Under the hood</h2>
+        <h3>Three public APIs, one resilient fetch layer</h3>
+        <p>
+          All data comes from free, keyless APIs: <strong>Jolpica</strong> (the Ergast
+          successor) for every season since 1950, <strong>OpenF1</strong> for live session
+          timing, and <strong>Open-Meteo</strong> for circuit weather. Every request goes
+          through a single <code>fetchJson</code> wrapper with timeouts, exponential-backoff
+          retries, and typed <code>ok / error</code> results — so a failing API degrades one
+          panel with an inline notice instead of crashing a page. Raw API shapes never leave
+          the API layer; pages only ever see typed domain models.
+        </p>
+        <h3>Tiered caching instead of a database</h3>
+        <p>
+          The insight that removed the database: <strong>completed seasons never change</strong>.
+          Historical data is cached indefinitely, current-season data revalidates hourly,
+          schedules every 15 minutes, and live timing is polled client-side every 4 seconds —
+          each tier expressed as a Next.js fetch revalidation policy. Jolpica allows ~500
+          requests per hour; the cache tiers keep the app comfortably inside that while feeling
+          instant.
+        </p>
+        <h3>The live timing engine</h3>
+        <p>
+          OpenF1 exposes raw event streams — positions, intervals, laps, stints, pit stops,
+          race control — that arrive unordered. A pure <code>buildLeaderboard</code> function
+          folds them into the timing screen: latest position per driver, formatted gaps
+          ("+1.234", "+1 LAP"), current compound and tire age, stop counts. It was built
+          test-first, which caught a classic off-by-one (a tire fitted on lap 19 and running
+          to lap 31 has done 13 laps, not 12). Verification against the real API also caught
+          OpenF1 rate-limiting parallel bursts — the fix serializes the eight stream fetches
+          with 200&nbsp;ms gaps and retries 429s.
+        </p>
+        <h3>The course as typed content</h3>
+        <p>
+          All 22 lessons — sections, quizzes, flashcards, misconceptions, ten hand-drawn SVG
+          diagrams — live as typed TypeScript modules, validated by an integrity test: every
+          lesson must have enough sections, valid quiz answer indices, resolvable
+          "next lesson" links. Same pattern for the 100+ term glossary, corner-by-corner
+          circuit guides, stylized track-map SVG paths, and 75 years of champions. Content
+          bugs fail CI like code bugs.
+        </p>
+        <h3>Business logic as pure functions</h3>
+        <p>
+          Career statistics aggregation, championship progression math, the "who can still
+          win" simulator, a linear tire-degradation strategy model, cross-era comparison
+          normalization (per-start rates, so Fangio's 52-race career compares fairly with
+          Alonso's 400+), and the search index — all pure functions under
+          <code>lib/services/</code>, all unit tested. The UI is a thin layer over logic
+          that provably works.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>Key design decisions</h2>
+        <div class="fact-grid">
+          <div class="fact-card">
+            <h4>Keyless over "production stack"</h4>
+            <p>The original spec suggested Supabase, PostgreSQL and Mapbox. Choosing public APIs plus cache tiers instead means anyone can run the full app in two commands — and there's nothing to leak, bill, or rotate.</p>
+          </div>
+          <div class="fact-card">
+            <h4>Degrade panels, never pages</h4>
+            <p>Every data call returns a typed result instead of throwing. A dead API turns into one inline notice; the other panels on the page keep working. The live center falls back from LIVE to REPLAY with an honest status badge.</p>
+          </div>
+          <div class="fact-card">
+            <h4>TDD where math lives</h4>
+            <p>Timing gaps, points accumulation, tire ages, title permutations — the places where silent bugs erode trust got failing-test-first treatment. 96 tests run in under a second.</p>
+          </div>
+          <div class="fact-card">
+            <h4>Motion with an off switch</h4>
+            <p>Track maps draw themselves in and leaderboard rows animate their overtakes — but every animation respects the OS reduced-motion preference plus an in-app toggle.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>The Claude Code process</h2>
+        <p>
+          This was the most heavily planned build on the site: a brainstormed design spec
+          (two decisions put to me: keyless APIs vs. full backend, and phased-full scope vs.
+          core-only), then a 31-task implementation plan with per-task verification gates —
+          typecheck, lint, tests, production build — and a commit after every task. The final
+          phase ran the real app in a browser against live data, which is how the font
+          fallback bug, the OpenF1 rate limit, and a mislabeled theme toggle were caught
+          before shipping. The spec and plan are committed in the repo under
+          <code>docs/superpowers/</code>, so the whole process is auditable.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-cta">
+      <div class="container container-narrow">
+        <h2 class="section-title">Explore the code</h2>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://github.com/ivh-ai/formula-one-explorer" target="_blank" rel="noopener">View on GitHub</a>
+          <a class="btn btn-ghost" href="formula-one-explorer-instructions.html">How to use</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Ishaan Hattangady</p>
+      <p class="footer-note">Designed &amp; built with <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>

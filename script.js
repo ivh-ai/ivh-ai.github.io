@@ -24,7 +24,7 @@ const HERO_LINES = [
   'Reading profile… <span class="ok">done</span>',
   '<span class="hl">Ishaan Hattangady</span> — Customer Success Manager, Austin, Texas.',
   'Designs and ships real, working software in collaboration with AI.',
-  '<span class="ok">✔</span> 4 projects compiled below. All of them run.',
+  '<span class="ok">✔</span> 5 projects compiled below. All of them run.',
 ];
 
 const typedEl = document.getElementById("typed");

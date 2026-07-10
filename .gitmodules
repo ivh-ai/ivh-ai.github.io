@@ -10,3 +10,6 @@
 [submodule "projects/job-search-tracker"]
 	path = projects/job-search-tracker
 	url = https://github.com/ivh-ai/job-search-tracker.git
+[submodule "projects/formula-one-explorer"]
+	path = projects/formula-one-explorer
+	url = https://github.com/ivh-ai/formula-one-explorer.git

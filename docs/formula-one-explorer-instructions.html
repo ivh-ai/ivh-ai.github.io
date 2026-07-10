@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to Use Formula One Explorer | Ishaan Hattangady</title>
+  <meta name="description" content="A guided tour of Formula One Explorer: the interactive F1 course, the live race center, the 1950–present archive, and the comparison and strategy tools." />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-brand" href="../index.html">
+        <span class="brand-mark" aria-hidden="true">IH</span>
+        Ishaan Hattangady
+      </a>
+      <div class="nav-menu" style="display:flex">
+        <a class="nav-link" href="../index.html#projects">← All projects</a>
+        <a class="nav-link" href="formula-one-explorer-build.html">How it was built</a>
+        <a class="btn btn-small btn-primary" href="https://github.com/ivh-ai/formula-one-explorer" target="_blank" rel="noopener">View on GitHub</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="doc-hero">
+      <div class="container container-narrow">
+        <div class="project-icon" aria-hidden="true">🏎️</div>
+        <p class="eyebrow">How to use</p>
+        <h1 class="doc-title">Formula One Explorer</h1>
+        <p class="doc-lede">
+          One app for the whole sport: an interactive course that takes you from
+          "what's a pit stop?" to fluent fan, live timing during race weekends, and every
+          season since 1950 — searchable from a single ⌘K palette.
+        </p>
+        <ul class="tag-list" aria-label="Technologies">
+          <li>Next.js</li><li>TypeScript</li><li>Live F1 data</li><li>96 unit tests</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>Run it locally</h2>
+        <ol class="step-list">
+          <li>
+            <h3>Clone and start — no keys needed</h3>
+            <p>Clone <a href="https://github.com/ivh-ai/formula-one-explorer" target="_blank" rel="noopener">the repo</a>, then <code>npm install</code> and <code>npm run dev</code>. That's the whole setup: the app runs entirely on free public APIs (Jolpica, OpenF1, Open-Meteo), so there are no accounts to create and no environment variables to configure.</p>
+          </li>
+          <li>
+            <h3>Open localhost:3000</h3>
+            <p>The homepage greets you with a countdown to the next Grand Prix, the current championship leaders, and rotating F1 facts — all fetched live.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>If you're new to F1</h2>
+        <ol class="step-list">
+          <li>
+            <h3>Start with the beginner's path</h3>
+            <p>Head to <strong>Learn F1</strong>. The course has 22 lessons across five tracks — foundations, machinery, race craft, rules, and deep dives — and a suggested nine-lesson beginner's path that takes you from zero to race-ready. Each lesson has hand-drawn diagrams, key takeaways, myth-busting, and fun facts.</p>
+          </li>
+          <li>
+            <h3>Quiz yourself, flip the flashcards</h3>
+            <p>Every lesson ends with an interactive quiz (with explanations for every answer) and a deck of flip-card flashcards. Mark lessons complete as you go — progress is saved on your device.</p>
+          </li>
+          <li>
+            <h3>Hover anything you don't know</h3>
+            <p>The <strong>Glossary</strong> holds 100+ terms — undercut, dirty air, parc fermé — searchable and filterable by category. The <strong>Rules</strong> page explains the sporting, technical and financial regulations in plain language.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>If you're already a fan</h2>
+        <ol class="step-list">
+          <li>
+            <h3>Watch sessions in the Live Race Center</h3>
+            <p>During any session, <strong>Live</strong> shows the full timing screen: positions, gaps, intervals, last/best laps, tire compounds and age, pit stops, race-control flag messages, trackside weather, and team radio — refreshing every four seconds. Between sessions it replays the most recent one, clearly labeled.</p>
+          </li>
+          <li>
+            <h3>Dive into 75+ years of archive</h3>
+            <p>The <strong>Seasons</strong> archive covers every championship since 1950 — full calendars, race and qualifying results, standings, and editorial notes on the landmark years. Driver and team pages compute career statistics from complete race history.</p>
+          </li>
+          <li>
+            <h3>Settle debates with the Compare tool</h3>
+            <p>Pick any two drivers in history — Senna vs. Verstappen, Fangio vs. Hamilton — and get head-to-head bars plus a radar chart normalized by per-start rates, so short brilliant careers compare fairly with long ones.</p>
+          </li>
+          <li>
+            <h3>Play strategist in the Simulators</h3>
+            <p>Run championship permutations ("who can still win?"), duel two tire strategies against a degradation model, or test your reactions in the pit-stop challenge — the record crew did it in 1.80 seconds.</p>
+          </li>
+          <li>
+            <h3>Press ⌘K for anything</h3>
+            <p>The global command palette searches drivers, teams, circuits, lessons, glossary terms, rules and all 75+ seasons instantly.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="doc-cta">
+      <div class="container container-narrow">
+        <h2 class="section-title">Get the code</h2>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://github.com/ivh-ai/formula-one-explorer" target="_blank" rel="noopener">View on GitHub</a>
+          <a class="btn btn-ghost" href="formula-one-explorer-build.html">How it was built</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Ishaan Hattangady</p>
+      <p class="footer-note">Designed &amp; built with <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>
