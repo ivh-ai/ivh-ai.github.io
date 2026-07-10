@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to Use Career Command Center | Ishaan Hattangady</title>
+  <meta name="description" content="A guided tour of Career Command Center: the analytics dashboard, the 10-stage kanban pipeline, AI-powered job intake, and the built-in career resources library." />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-brand" href="../index.html">
+        <span class="brand-mark" aria-hidden="true">IH</span>
+        Ishaan Hattangady
+      </a>
+      <div class="nav-menu" style="display:flex">
+        <a class="nav-link" href="../index.html#projects">← All projects</a>
+        <a class="nav-link" href="career-command-center-build.html">How it was built</a>
+        <a class="btn btn-small btn-primary" href="https://career-command-center-demo.vercel.app/" target="_blank" rel="noopener">Open the demo</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="doc-hero">
+      <div class="container container-narrow">
+        <div class="project-icon" aria-hidden="true">🎯</div>
+        <p class="eyebrow">How to use</p>
+        <h1 class="doc-title">Career Command Center</h1>
+        <p class="doc-lede">
+          An AI-powered career operating system: paste a job posting and Claude turns it
+          into a tracked application, then a telemetry-style dashboard, a drag-and-drop
+          pipeline, and a coaching library keep the whole search moving.
+        </p>
+        <ul class="tag-list" aria-label="Technologies">
+          <li>Next.js</li><li>TypeScript</li><li>Claude API</li><li>Prisma</li><li>Supabase</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>Explore the public demo</h2>
+        <p>
+          The hosted demo is <strong>read-only</strong> and loaded with a realistic sample
+          pipeline of fifteen applications — you can browse everything, but writes are
+          politely declined server-side, so feel free to click anything.
+        </p>
+        <ol class="step-list">
+          <li>
+            <h3>Start on the Dashboard</h3>
+            <p>The landing page answers "what should I do next?" at a glance: a pipeline funnel, response/interview/offer rates, this week vs. last week, today's focus list, applications that need attention (stale or closing soon), upcoming interviews, and a live activity feed.</p>
+          </li>
+          <li>
+            <h3>Open the Kanban board</h3>
+            <p>Ten stages from <em>Interested</em> to <em>Offer Extended</em>. Each card shows salary, location, priority, days in stage, and the next action. Applications idle for 14+ days get an amber <em>stale</em> badge automatically. Try dragging a card — the demo will show you the read-only notice, which is itself the feature working.</p>
+          </li>
+          <li>
+            <h3>Click into any application</h3>
+            <p>Every application is a living workspace: an AI summary of the role, an automatic timeline of every change, plus tabs for notes, interviews, contacts, the archived job description, and documents. Nothing is entered twice — moving a card writes the timeline for you.</p>
+          </li>
+          <li>
+            <h3>Browse Resources</h3>
+            <p>A built-in library of 29 original career guides across 16 categories — resumes, ATS systems, behavioral interviews, salary negotiation — plus a prompt library with one-click-copy prompts for Claude, ChatGPT, Gemini, Perplexity, and NotebookLM.</p>
+          </li>
+          <li>
+            <h3>Press ⌘K anywhere</h3>
+            <p>The command palette searches every application and jumps to any page instantly.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>What the full version adds</h2>
+        <ol class="step-list">
+          <li>
+            <h3>AI job intake</h3>
+            <p>Paste a job posting URL (or the posting text) and Claude extracts ~23 structured fields — company, role, salary range, remote status, skills, benefits, recruiter, closing date — into an editable review screen. One confirmation click and the application is tracked, summarized, and on the board. Sites that block scraping fall back to paste automatically; a manual form always works.</p>
+          </li>
+          <li>
+            <h3>AI summaries and insights</h3>
+            <p>Each saved application gets a role summary, key requirements, and ATS-relevant keywords. The dashboard's insight card reads your live pipeline stats and gives one specific, actionable observation — like a coach reviewing your funnel.</p>
+          </li>
+          <li>
+            <h3>Your data stays yours</h3>
+            <p>The full version runs locally with a private database and your own Anthropic API key — applications, notes, and documents never leave your machine except the AI calls. Everything in the demo works identically, just writable.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="doc-cta">
+      <div class="container container-narrow">
+        <h2 class="section-title">See it in action</h2>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://career-command-center-demo.vercel.app/" target="_blank" rel="noopener">Open the demo</a>
+          <a class="btn btn-ghost" href="career-command-center-build.html">How it was built</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Ishaan Hattangady</p>
+      <p class="footer-note">Designed &amp; built with <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>

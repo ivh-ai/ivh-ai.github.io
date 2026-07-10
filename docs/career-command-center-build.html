@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building Career Command Center | Ishaan Hattangady</title>
+  <meta name="description" content="How Career Command Center was built: a 14-task plan executed by reviewed subagents, structured AI extraction with the Claude API, a dual SQLite/Postgres Prisma setup, and a server-enforced read-only demo." />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-brand" href="../index.html">
+        <span class="brand-mark" aria-hidden="true">IH</span>
+        Ishaan Hattangady
+      </a>
+      <div class="nav-menu" style="display:flex">
+        <a class="nav-link" href="../index.html#projects">← All projects</a>
+        <a class="nav-link" href="career-command-center-instructions.html">How to use</a>
+        <a class="btn btn-small btn-primary" href="https://career-command-center-demo.vercel.app/" target="_blank" rel="noopener">Open the demo</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="doc-hero">
+      <div class="container container-narrow">
+        <div class="project-icon" aria-hidden="true">🎯</div>
+        <p class="eyebrow">How it was built</p>
+        <h1 class="doc-title">Building Career Command Center</h1>
+        <p class="doc-lede">
+          A full product in one continuous run: a brainstormed spec, a 14-task plan executed
+          by fresh AI subagents with an independent reviewer gating every task, live Claude API
+          extraction, and a hosted read-only demo — 20+ commits, 28 unit tests, ~21,000 lines.
+        </p>
+        <ul class="tag-list" aria-label="Technologies">
+          <li>Next.js</li><li>React Server Components</li><li>TypeScript</li><li>Tailwind CSS</li><li>Prisma</li><li>Claude API</li><li>Supabase</li><li>Vitest</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>The idea</h2>
+        <p>
+          Job tracking tools are spreadsheets with better fonts. The brief was different:
+          a <strong>career operating system</strong> that feels like Notion's organization,
+          Apple's polish, and an F1 race engineer's telemetry wall — where every screen
+          answers one question: <em>what should I do next to get hired?</em> AI is the
+          engine, not a gimmick: paste a job URL and Claude reads the posting, extracts
+          ~23 structured fields, writes a summary, and files it into the pipeline.
+          One more constraint: local-first. Your applications live in a private database
+          on your own machine.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>Under the hood</h2>
+        <h3>Structured extraction, not string parsing</h3>
+        <p>
+          Job postings are messy HTML. A small fetcher strips them to readable text, then
+          the Claude API returns a <strong>schema-validated object</strong> — the extraction
+          is defined as a zod schema (23 fields, every one deliberately nullable so the model
+          says "not stated" instead of inventing salaries), and the SDK's structured-output
+          mode guarantees the response parses. Sites that block scraping degrade gracefully:
+          the intake dialog flips to a paste tab with the same extraction, and a manual form
+          needs no AI at all.
+        </p>
+        <h3>An AI layer nothing else imports around</h3>
+        <p>
+          All AI calls go through one <code>AIProvider</code> interface — extraction,
+          per-application summaries, and the dashboard's coaching insight. The vendor SDK is
+          imported in exactly one file. No API key? The provider is <code>null</code> and every
+          feature shows a designed "not configured" state instead of an error. That same
+          discipline is what made the public demo trivial to secure later.
+        </p>
+        <h3>Server components, server actions, and one seam for auth</h3>
+        <p>
+          Pages are React Server Components reading straight from Prisma; every write is a
+          server action that stamps activity timestamps and appends to an automatic
+          per-application timeline. Every row carries a <code>userId</code> and every query
+          filters by one <code>getCurrentUserId()</code> helper — today it returns a constant,
+          and swapping in real authentication means changing one function.
+        </p>
+        <h3>One schema, two databases</h3>
+        <p>
+          Local runs on SQLite — zero setup, one file. The hosted demo runs on Supabase
+          Postgres. Rather than maintaining two schemas, a build script derives the Postgres
+          schema from the SQLite one by swapping the datasource block, so the models can never
+          drift. Vercel's build regenerates the Prisma client against Postgres; the laptop
+          keeps SQLite.
+        </p>
+        <h3>Analytics as pure, tested math</h3>
+        <p>
+          Funnel counts, response/interview/offer rates, weekly velocity, and stale detection
+          are pure functions with an explicit metric contract written in comments (a rejection
+          counts as a response; fourteen idle days means stale) — built test-first, so the
+          dashboard numbers are provably right before any pixel renders them.
+        </p>
+        <h3>A demo that can't be vandalized</h3>
+        <p>
+          The public demo sets one environment variable, and all eighteen mutating server
+          actions check it <em>before touching the database</em> — dragging a kanban card in
+          the demo gets a polite toast, not a write. Because it's enforced server-side, no
+          amount of browser fiddling gets around it, and the demo carries no API key for
+          strangers to spend.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>Key design decisions</h2>
+        <div class="fact-grid">
+          <div class="fact-card">
+            <h4>Nullable-by-design extraction</h4>
+            <p>Every extracted field allows null, and the prompt forbids invented values. A posting without a salary produces an honest blank — hallucinated compensation would be worse than none.</p>
+          </div>
+          <div class="fact-card">
+            <h4>Degrade features, never the app</h4>
+            <p>Missing API key, blocked URL, failed AI call — each has a designed fallback state. An AI summary failure never loses the save; the application lands and offers a retry.</p>
+          </div>
+          <div class="fact-card">
+            <h4>Optimistic UI with a race guard</h4>
+            <p>Kanban drags update instantly and reconcile with the server after. A per-card request token discards stale responses, so even a rapid double-drag can't desync the board — a bug the review process caught before it shipped.</p>
+          </div>
+          <div class="fact-card">
+            <h4>Color means something</h4>
+            <p>The design system is white, gray, and frosted glass; color appears only as meaning — blue for info, green for offers, amber for stale, red for rejections, purple for AI. If it's colorful, it's telling you something.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="container container-narrow">
+        <h2>The Claude Code process</h2>
+        <p>
+          This build used the most rigorous process on the site. It started as a written
+          product spec, was brainstormed into an approved design document, then decomposed
+          into a <strong>14-task implementation plan</strong>. Each task was executed by a
+          fresh Claude subagent with exactly the context it needed — and then a separate
+          <strong>reviewer subagent</strong> audited the diff against the task's requirements
+          before the next task could start.
+        </p>
+        <p>
+          The reviewers earned their keep: they caught a database driver version mismatch that
+          would have crashed the first real query, an entity-decoding bug in the HTML parser,
+          a race condition in the kanban's optimistic updates, and a command palette that
+          couldn't actually open — each fixed and re-reviewed before moving on. A final
+          whole-branch review across all 20+ commits found five integration gaps the per-task
+          reviews couldn't see (including a framework upload limit silently contradicting the
+          app's own), all fixed before merge. The read-only demo — Supabase database, Vercel
+          deployment, browser-verified write blocking — shipped the same day as a follow-up
+          feature through the same spec-first flow.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-cta">
+      <div class="container container-narrow">
+        <h2 class="section-title">See it live</h2>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://career-command-center-demo.vercel.app/" target="_blank" rel="noopener">Open the demo</a>
+          <a class="btn btn-ghost" href="career-command-center-instructions.html">How to use</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Ishaan Hattangady</p>
+      <p class="footer-note">Designed &amp; built with <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>
