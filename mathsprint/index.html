@@ -1156,34 +1156,17 @@ const sbHeaders = () => ({
 async function saveScore(mode, name, score, total, accuracy) {
   if (useSupabase()) {
     try {
-      const h = sbHeaders();
-      // Check if this name already has an entry for this mode
-      const checkRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/scores?name=eq.${encodeURIComponent(name)}&mode=eq.${mode}&select=id,score`,
-        { headers: h }
-      );
-      const existing = await checkRes.json();
-
-      if (existing.length === 0) {
-        // New name — insert
-        await fetch(`${SUPABASE_URL}/rest/v1/scores`, {
-          method: 'POST',
-          headers: { ...h, 'Prefer': 'return=minimal' },
-          body: JSON.stringify({ name, mode, score, total_questions: total, accuracy }),
-        });
-      } else if (score > existing[0].score) {
-        // Same name, better score — update in place
-        await fetch(`${SUPABASE_URL}/rest/v1/scores?id=eq.${existing[0].id}`, {
-          method: 'PATCH',
-          headers: { ...h, 'Prefer': 'return=minimal' },
-          body: JSON.stringify({ score, total_questions: total, accuracy, created_at: new Date().toISOString() }),
-        });
-      }
-      // If score is not better, do nothing
-
-      const rows = await fetchRemoteLb(mode);
-      const idx = rows.findIndex(r => r.name === name);
-      return idx >= 0 ? idx + 1 : 99;
+      // Writes go through the submit-score Edge Function, which validates the
+      // payload and performs the keep-best upsert server-side. Direct table
+      // writes are blocked by Row Level Security; only reads are public.
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-score`, {
+        method: 'POST',
+        headers: sbHeaders(),
+        body: JSON.stringify({ game: 'mathsprint', mode, name, score, total_questions: total, accuracy }),
+      });
+      if (!res.ok) throw new Error(`submit-score ${res.status}`);
+      const data = await res.json();
+      return typeof data.rank === 'number' ? data.rank : 99;
     } catch (e) {
       console.warn('Supabase save failed, falling back:', e);
     }

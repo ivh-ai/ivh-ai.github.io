@@ -1,0 +1,7 @@
+project_id = "trxxtjilifjuqqunuzrl"
+
+[functions.submit-score]
+# Require the project's anon JWT to reach the function. It's not real auth (the
+# anon key is public), but it keeps the endpoint from being trivially open and
+# lets the platform apply its own rate limiting.
+verify_jwt = true
