@@ -3,8 +3,8 @@
 **Live site: https://ivh-ai-github-io.vercel.app** (deployed on Vercel; auto-deploys on push to `main`)
 
 A single-page portfolio showcasing projects built with Claude Code:
-COTE (Countries of the Earth), MathSprint, Job Search Tracker, the Habit
-Tracker, and the Formula One Explorer.
+COTE (Countries of the Earth), MathSprint, the Habit Tracker, the Formula
+One Explorer, and the Career Command Center (hosted read-only demo on Vercel).
 
 Plain HTML/CSS/JS — no build step, no dependencies.
 
@@ -18,13 +18,6 @@ Plain HTML/CSS/JS — no build step, no dependencies.
   `<project>-instructions.html` (visitor how-to guide) and
   `<project>-build.html` (technical build story)
 - `cote/`, `mathsprint/` — bundled playable game demos
-- `job-search-tracker-demo/` — the real Job Search Tracker dashboard front-end running statically
-  in its built-in demo mode with fictional sample data. `styles.css` and
-  `app.js` are copied verbatim from `../Job Search Tracker/career-dashboard/public/`;
-  `demo-data.js` forces demo mode and shims the server API with a sample
-  pipeline mirroring the server's `demoState()`. Fully interactive (drag cards,
-  log interview rounds, add jobs), but every edit is simulated in the browser
-  and never saved
 - `habits/` — Habit Tracker PWA demo (production build of `../Habit Tracker`
   via `npx vite build --base=/habits/`, plus `demo-seed.js` injected into its
   index.html: seeds ~6 weeks of sample habits into localStorage on first visit
@@ -60,14 +53,10 @@ after changing a game:
   npx vite build --base=/cote/
   cp -r dist "../Claude Portfolio/cote"
   ```
-- **Job Search Tracker**: copy the redesigned front-end over, keeping the demo's own
-  `index.html` and `demo-data.js`:
-  ```
-  cp "../Job Search Tracker/career-dashboard/public/styles.css" job-search-tracker-demo/styles.css
-  cp "../Job Search Tracker/career-dashboard/public/app.js"      job-search-tracker-demo/app.js
-  ```
-  If the sample data changes, mirror the server's `demoState()` into
-  `job-search-tracker-demo/demo-data.js`.
+- **Career Command Center**: hosted externally — the card links to the
+  read-only Vercel demo (`career-command-center-demo.vercel.app`), which
+  auto-deploys from the `ivh-ai/career-command-center` repo. Nothing to
+  copy into this folder.
 
 ## Adding a future project
 
