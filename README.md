@@ -4,8 +4,7 @@
 
 A single-page portfolio showcasing projects built with Claude Code:
 COTE (Countries of the Earth), MathSprint, Job Search Tracker, the Habit
-Tracker, and the Formula One Explorer (standalone app at
-https://formula-one-explorer.vercel.app).
+Tracker, and the Formula One Explorer.
 
 Plain HTML/CSS/JS — no build step, no dependencies.
 
