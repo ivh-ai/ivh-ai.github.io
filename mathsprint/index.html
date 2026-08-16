@@ -248,6 +248,62 @@
       margin-top: 1px;
     }
 
+    .duration-field { margin-bottom: 16px; }
+    .duration-field label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .duration-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .duration-btn {
+      padding: 10px 8px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: inherit;
+    }
+    .duration-btn:hover { border-color: var(--accent); }
+    .duration-btn.active {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+    .duration-note {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .music-btn {
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+    .music-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .music-btn svg { width: 18px; height: 18px; }
+
     .name-field { margin-bottom: 16px; }
     .name-field label {
       display: block;
@@ -717,6 +773,16 @@
         </li>
       </ul>
 
+      <div class="duration-field">
+        <label>Timer</label>
+        <div class="duration-group">
+          <button class="duration-btn" data-secs="30" onclick="selectDuration(30)">30 sec</button>
+          <button class="duration-btn" data-secs="60" onclick="selectDuration(60)">60 sec</button>
+          <button class="duration-btn active" data-secs="90" onclick="selectDuration(90)">90 sec</button>
+        </div>
+        <div class="duration-note" id="duration-note">Only 90-second games count toward the global leaderboard.</div>
+      </div>
+
       <div class="name-field">
         <label for="player-name">Your Name</label>
         <input type="text" id="player-name" placeholder="Enter your name…" maxlength="24" autocomplete="off">
@@ -748,6 +814,7 @@
         <div class="game-stat-value" id="streak-value">0</div>
         <div class="game-stat-label">Streak</div>
       </div>
+      <button class="music-btn" id="music-btn" onclick="toggleMusic()" aria-label="Toggle music"></button>
     </div>
 
     <div class="timer-bar-wrap">
@@ -897,6 +964,7 @@ let state = {
   correct: 0,
   streak: 0,
   maxStreak: 0,
+  duration: 90,
   timeLeft: 90,
   currentAnswer: null,
   answered: false,
@@ -904,10 +972,24 @@ let state = {
   nextID: null,
 };
 
+function selectDuration(secs) {
+  state.duration = secs;
+  document.querySelectorAll('.duration-btn').forEach(b =>
+    b.classList.toggle('active', parseInt(b.dataset.secs) === secs));
+  document.getElementById('duration-note').textContent = secs === 90
+    ? 'Only 90-second games count toward the global leaderboard.'
+    : 'Practice mode — scores won’t be submitted to the leaderboard.';
+}
+
 // ─────────────────────────────────────────────────────
 // NAVIGATION
 // ─────────────────────────────────────────────────────
 function showPage(page) {
+  if (page !== 'game' && typeof stopMusic === 'function') {
+    stopMusic();
+    // Abandon any in-progress game (navigating away mid-game)
+    if (page !== 'results') { clearInterval(state.timerID); clearTimeout(state.nextID); }
+  }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(page + '-page').classList.add('active');
@@ -999,7 +1081,7 @@ function startGame() {
   state.correct  = 0;
   state.streak   = 0;
   state.maxStreak = 0;
-  state.timeLeft = 90;
+  state.timeLeft = state.duration;
   state.answered = false;
 
   clearInterval(state.timerID);
@@ -1008,11 +1090,14 @@ function startGame() {
   const bar = document.getElementById('timer-bar');
   bar.style.width = '100%';
   bar.className = '';
-  document.getElementById('timer-value').className = '';
+  const tv = document.getElementById('timer-value');
+  tv.className = '';
+  tv.textContent = state.duration;
 
   showPage('game');
   loadQuestion();
   startTimer();
+  startMusic();
 }
 
 function playAgain() {
@@ -1025,15 +1110,15 @@ function startTimer() {
   clearInterval(state.timerID);
   state.timerID = setInterval(() => {
     state.timeLeft--;
-    const pct = (state.timeLeft / 90) * 100;
+    const pct = (state.timeLeft / state.duration) * 100;
     const bar = document.getElementById('timer-bar');
     const tv  = document.getElementById('timer-value');
     tv.textContent = state.timeLeft;
     bar.style.width = pct + '%';
 
-    if (state.timeLeft <= 15) {
+    if (state.timeLeft <= state.duration / 6) {
       bar.className = 'danger'; tv.className = 'danger';
-    } else if (state.timeLeft <= 30) {
+    } else if (state.timeLeft <= state.duration / 3) {
       bar.className = 'warn';   tv.className = 'warn';
     }
 
@@ -1110,28 +1195,34 @@ function updateStats() {
 
 async function endGame() {
   clearTimeout(state.nextID);
+  stopMusic();
   // Don't count a question that was on screen but never answered
   if (!state.answered && state.total > 0) state.total--;
   const accuracy = state.total > 0 ? Math.round(state.correct / state.total * 100) : 0;
+  document.getElementById('rank-badge-container').innerHTML = '';
 
-  // Save score (async — non-blocking)
-  saveScore(state.mode, state.player, state.score, state.total, accuracy).then(rank => {
-    const badgeEl = document.getElementById('rank-badge-container');
-    if (rank === 1) {
-      badgeEl.innerHTML = `<div class="rank-badge gold" style="margin-bottom:16px">🏆 New #1 Record!</div>`;
-    } else if (rank <= 10) {
-      badgeEl.innerHTML = `<div class="rank-badge ranked" style="margin-bottom:16px">🎖 Ranked #${rank} on the leaderboard</div>`;
-    } else {
-      badgeEl.innerHTML = '';
-    }
-  });
+  // Save score (async — non-blocking). Only 90s games rank on the leaderboard.
+  if (state.duration === 90) {
+    saveScore(state.mode, state.player, state.score, state.total, accuracy).then(rank => {
+      const badgeEl = document.getElementById('rank-badge-container');
+      if (rank === 1) {
+        badgeEl.innerHTML = `<div class="rank-badge gold" style="margin-bottom:16px">🏆 New #1 Record!</div>`;
+      } else if (rank <= 10) {
+        badgeEl.innerHTML = `<div class="rank-badge ranked" style="margin-bottom:16px">🎖 Ranked #${rank} on the leaderboard</div>`;
+      } else {
+        badgeEl.innerHTML = '';
+      }
+    });
+  } else {
+    document.getElementById('rank-badge-container').innerHTML =
+      `<div class="rank-badge ranked" style="margin-bottom:16px">Practice mode · ${state.duration}s</div>`;
+  }
 
   document.getElementById('res-score').textContent     = state.score;
   document.getElementById('res-questions').textContent = state.total;
   document.getElementById('res-accuracy').textContent  = accuracy + '%';
   document.getElementById('res-streak').textContent    = state.maxStreak;
   document.getElementById('res-subtitle').textContent  = `${state.player} · ${MODE_CONFIG[state.mode].name}`;
-  document.getElementById('rank-badge-container').innerHTML = '';
 
   let trophy = '🏅', title = 'Good effort!';
   if      (state.score >= 30) { trophy = '🏆'; title = 'Incredible!'; }
@@ -1267,6 +1358,120 @@ function esc(s) {
   return String(s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─────────────────────────────────────────────────────
+// MUSIC — generative Web Audio, intensity follows the timer
+// ─────────────────────────────────────────────────────
+const music = {
+  ctx: null,
+  master: null,
+  stepID: null,
+  step: 0,
+  muted: localStorage.getItem('mathsprint_muted') === '1',
+  playing: false,
+};
+
+// A-minor pentatonic
+const LEAD_NOTES = [220, 261.63, 293.66, 329.63, 392, 440];
+const BASS_NOTES = [55, 55, 65.41, 49];
+
+function intensity() {
+  // 0 at full time → 1 as the clock hits zero
+  return Math.min(1, Math.max(0, 1 - state.timeLeft / state.duration));
+}
+
+function playTone(freq, dur, type, vol, when) {
+  const t = when ?? music.ctx.currentTime;
+  const osc  = music.ctx.createOscillator();
+  const gain = music.ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.connect(gain).connect(music.master);
+  osc.start(t);
+  osc.stop(t + dur);
+}
+
+function playNoise(dur, vol) {
+  const t = music.ctx.currentTime;
+  const len = Math.floor(music.ctx.sampleRate * dur);
+  const buf = music.ctx.createBuffer(1, len, music.ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+  const src  = music.ctx.createBufferSource();
+  const gain = music.ctx.createGain();
+  const hp   = music.ctx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 6000;
+  src.buffer = buf;
+  gain.gain.value = vol;
+  src.connect(hp).connect(gain).connect(music.master);
+  src.start(t);
+}
+
+function musicStep() {
+  if (!music.playing) return;
+  const k = intensity();
+  const s = music.step;
+
+  // Bass pulse on every beat (every 2 steps)
+  if (s % 2 === 0) {
+    playTone(BASS_NOTES[(s / 2) % 4], 0.22, 'triangle', 0.22 + 0.1 * k);
+  }
+  // Lead melody — sparse early, busier as intensity rises
+  if (s % 4 === 0 || (k > 0.35 && s % 2 === 0) || k > 0.75) {
+    const note = LEAD_NOTES[Math.floor(Math.random() * LEAD_NOTES.length)] * (k > 0.6 ? 2 : 1);
+    playTone(note, 0.16, 'square', 0.05 + 0.05 * k);
+  }
+  // Hi-hat ticks join in the mid-game, doubling near the end
+  if (k > 0.3 && (s % 2 === 1 || k > 0.7)) {
+    playNoise(0.04, 0.05 + 0.08 * k);
+  }
+
+  music.step++;
+  // Tempo ramps from ~107 to ~187 BPM as time runs out
+  const interval = 280 - 160 * k;
+  music.stepID = setTimeout(musicStep, interval);
+}
+
+function startMusic() {
+  renderMusicBtn();
+  if (music.muted) return;
+  if (!music.ctx) {
+    music.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    music.master = music.ctx.createGain();
+    music.master.gain.value = 0.5;
+    music.master.connect(music.ctx.destination);
+  }
+  music.ctx.resume();
+  music.step = 0;
+  music.playing = true;
+  clearTimeout(music.stepID);
+  musicStep();
+}
+
+function stopMusic() {
+  music.playing = false;
+  clearTimeout(music.stepID);
+}
+
+function toggleMusic() {
+  music.muted = !music.muted;
+  localStorage.setItem('mathsprint_muted', music.muted ? '1' : '0');
+  if (music.muted) {
+    stopMusic();
+  } else if (document.getElementById('game-page').classList.contains('active') && state.timeLeft > 0) {
+    startMusic();
+  }
+  renderMusicBtn();
+}
+
+function renderMusicBtn() {
+  const on  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+  const off = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none"/><line x1="16" y1="9" x2="22" y2="15"/><line x1="22" y1="9" x2="16" y2="15"/></svg>';
+  document.getElementById('music-btn').innerHTML = music.muted ? off : on;
 }
 
 // ─────────────────────────────────────────────────────
