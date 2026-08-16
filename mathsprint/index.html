@@ -1416,23 +1416,23 @@ function musicStep() {
   const k = intensity();
   const s = music.step;
 
-  // Bass pulse on every beat (every 2 steps)
+  // Soft bass pulse on every beat (every 2 steps)
   if (s % 2 === 0) {
-    playTone(BASS_NOTES[(s / 2) % 4], 0.22, 'triangle', 0.22 + 0.1 * k);
+    playTone(BASS_NOTES[(s / 2) % 4], 0.3, 'sine', 0.16 + 0.06 * k);
   }
-  // Lead melody — sparse early, busier as intensity rises
-  if (s % 4 === 0 || (k > 0.35 && s % 2 === 0) || k > 0.75) {
-    const note = LEAD_NOTES[Math.floor(Math.random() * LEAD_NOTES.length)] * (k > 0.6 ? 2 : 1);
-    playTone(note, 0.16, 'square', 0.05 + 0.05 * k);
+  // Gentle lead melody — sparse early, a little busier late
+  if (s % 4 === 0 || (k > 0.6 && s % 2 === 0)) {
+    const note = LEAD_NOTES[Math.floor(Math.random() * LEAD_NOTES.length)];
+    playTone(note, 0.25, 'triangle', 0.04 + 0.03 * k);
   }
-  // Hi-hat ticks join in the mid-game, doubling near the end
-  if (k > 0.3 && (s % 2 === 1 || k > 0.7)) {
-    playNoise(0.04, 0.05 + 0.08 * k);
+  // Quiet hi-hat ticks only in the final stretch
+  if (k > 0.65 && s % 2 === 1) {
+    playNoise(0.03, 0.03 + 0.03 * k);
   }
 
   music.step++;
-  // Tempo ramps from ~107 to ~187 BPM as time runs out
-  const interval = 280 - 160 * k;
+  // Tempo eases from ~86 to ~125 BPM as time runs out
+  const interval = 350 - 110 * k;
   music.stepID = setTimeout(musicStep, interval);
 }
 
@@ -1442,7 +1442,7 @@ function startMusic() {
   if (!music.ctx) {
     music.ctx = new (window.AudioContext || window.webkitAudioContext)();
     music.master = music.ctx.createGain();
-    music.master.gain.value = 0.5;
+    music.master.gain.value = 0.4;
     music.master.connect(music.ctx.destination);
   }
   music.ctx.resume();
