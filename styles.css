@@ -578,6 +578,30 @@ a:hover { text-decoration: underline; }
   border-radius: 999px;
 }
 
+.project-shots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0 0 var(--s3);
+}
+.project-shots a {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface-strong);
+  transition: border-color 0.25s;
+}
+.project-shots a:hover { border-color: var(--border-hi); }
+.project-shots img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform: scale(1.001);
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.project-shots a:hover img { transform: scale(1.04); }
+
 .project-links {
   display: flex;
   flex-wrap: wrap;

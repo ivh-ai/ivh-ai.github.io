@@ -4,7 +4,7 @@
 
 A single-page portfolio showcasing projects built with Claude Code:
 COTE (Countries of the Earth), MathSprint, the Habit Tracker, the Formula
-One Explorer, and the Career Command Center (hosted read-only demo on Vercel).
+One Explorer, and Tallly (live at https://tallly.vercel.app with a hosted read-only demo).
 
 Plain HTML/CSS/JS — no build step, no dependencies.
 
@@ -53,10 +53,11 @@ after changing a game:
   npx vite build --base=/cote/
   cp -r dist "../Claude Portfolio/cote"
   ```
-- **Career Command Center**: hosted externally — the card links to the
-  read-only Vercel demo (`career-command-center-demo.vercel.app`), which
-  auto-deploys from the `ivh-ai/career-command-center` repo. Nothing to
-  copy into this folder.
+- **Tallly**: hosted externally — the card links to the product page
+  (`tallly.vercel.app`) and the read-only demo
+  (`career-command-center-demo.vercel.app`), which auto-deploys from the
+  `ivh-ai/career-command-center` repo. Card screenshots live in `shots/`.
+  Nothing else to copy into this folder.
 
 ## Adding a future project
 
